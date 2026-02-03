@@ -1,0 +1,50 @@
+/* App-specific styles */
+
+/* Smooth scrolling for the whole page */
+html {
+  scroll-behavior: auto;
+}
+
+/* Ensure sections stack properly */
+main {
+  position: relative;
+}
+
+/* Pin spacer styling */
+.pin-spacer {
+  background: transparent !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .headline-xl {
+    font-size: clamp(32px, 8vw, 48px) !important;
+  }
+  
+  .headline-lg {
+    font-size: clamp(24px, 6vw, 32px) !important;
+  }
+}
+
+/* Touch device optimizations */
+@media (pointer: coarse) {
+  .product-card .group-hover\:opacity-100 {
+    opacity: 1 !important;
+  }
+  
+  .product-card .group-hover\:translate-y-0 {
+    transform: translateY(0) !important;
+  }
+}
+
+/* Loading state */
+.loading {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.loaded {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}

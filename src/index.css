@@ -1,0 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 24% 95%;
+    --foreground: 0 0% 7%;
+    --card: 30 24% 95%;
+    --card-foreground: 0 0% 7%;
+    --popover: 30 24% 95%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 0 0% 7%;
+    --primary-foreground: 30 24% 95%;
+    --secondary: 220 29% 6%;
+    --secondary-foreground: 30 24% 95%;
+    --muted: 30 10% 88%;
+    --muted-foreground: 0 0% 43%;
+    --accent: 40 55% 59%;
+    --accent-foreground: 220 29% 6%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 30 10% 85%;
+    --input: 30 10% 85%;
+    --ring: 40 55% 59%;
+    --radius: 0.25rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Typography */
+.font-display {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.font-body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Headline styling */
+.headline-xl {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  line-height: 0.98;
+}
+
+.headline-lg {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  line-height: 1.05;
+}
+
+/* Body text */
+.body-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.label-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+}
+
+/* Grain overlay */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Vignette overlay */
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(0,0,0,0.35) 100%);
+}
+
+.vignette-overlay-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 60%, rgba(0,0,0,0.2) 100%);
+}
+
+/* Section base */
+.section-pinned {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply px-8 py-3 bg-[#D4A05A] text-[#0B0F17] font-medium text-sm uppercase tracking-widest transition-all duration-300;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 160, 90, 0.3);
+}
+
+.btn-ghost {
+  @apply px-6 py-2 border border-white/30 text-white font-medium text-xs uppercase tracking-widest transition-all duration-300 bg-transparent;
+}
+
+.btn-ghost:hover {
+  @apply bg-white/10;
+}
+
+/* Product card */
+.product-card {
+  @apply transition-all duration-300;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.03);
+}
+
+.product-image {
+  @apply transition-transform duration-500;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F6F2EE;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4A05A;
+  border-radius: 3px;
+}
+
+/* Cart drawer */
+.cart-drawer {
+  @apply fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-500 z-[200];
+}
+
+.cart-drawer.open {
+  @apply translate-x-0;
+}
+
+/* Navigation overlay */
+.nav-overlay {
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] opacity-0 pointer-events-none transition-opacity duration-300;
+}
+
+.nav-overlay.open {
+  @apply opacity-100 pointer-events-auto;
+}
+
+/* Menu drawer */
+.menu-drawer {
+  @apply fixed inset-y-0 left-0 w-full max-w-sm bg-[#F6F2EE] transform -translate-x-full transition-transform duration-500 z-[200];
+}
+
+.menu-drawer.open {
+  @apply translate-x-0;
+}
+
+/* Panel hover effect */
+.category-panel {
+  @apply relative overflow-hidden transition-all duration-500;
+}
+
+.category-panel::before {
+  content: '';
+  @apply absolute inset-0 bg-black/30 transition-opacity duration-500 z-[2];
+}
+
+.category-panel:hover::before {
+  @apply bg-black/15;
+}
+
+.category-panel:hover .panel-label {
+  transform: translateY(-4px);
+}
+
+.panel-label {
+  @apply transition-transform duration-300;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

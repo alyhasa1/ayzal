@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Kameez / Kurta outline - traditional Pakistani long shirt -->
+  <path d="M20 4 L20 12 Q20 16 24 16 L40 16 Q44 16 44 12 L44 4"/>
+  <path d="M20 4 L12 10 L12 28 L20 24"/>
+  <path d="M44 4 L52 10 L52 28 L44 24"/>
+  <path d="M20 24 L20 72 Q20 76 24 76 L40 76 Q44 76 44 72 L44 24"/>
+  <!-- Neckline -->
+  <path d="M28 4 Q32 8 36 4"/>
+  <!-- Side slits indication -->
+  <path d="M20 60 L24 60"/>
+  <path d="M44 60 L40 60"/>
+</svg>
