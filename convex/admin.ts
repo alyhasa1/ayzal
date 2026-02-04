@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { requireAdmin } from "./lib/auth";
 import { v } from "convex/values";
 
 export const isAdmin = query({
@@ -22,6 +23,7 @@ export const repairAuthAccounts = mutation({
     email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const accounts = args.email
       ? await ctx.db
           .query("authAccounts")
