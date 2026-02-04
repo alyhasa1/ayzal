@@ -74,7 +74,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
     }, section);
 
     return () => ctx.revert();
-  }, []);
+  }, [newArrivals.length]);
 
   return (
     <section
