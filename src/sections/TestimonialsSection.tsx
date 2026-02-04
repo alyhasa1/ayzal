@@ -31,61 +31,55 @@ export default function TestimonialsSection({ data }: { data?: any }) {
     if (!section) return;
 
     const ctx = gsap.context(() => {
-      // Title animation
       gsap.fromTo(
         titleRef.current,
-        { y: 20, opacity: 0 },
+        { y: 18, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.8,
+          duration: 0.7,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: titleRef.current,
-            start: 'top 80%',
-            end: 'top 60%',
-            scrub: 1,
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
           },
         }
       );
 
-      // Cards animation
-      cardsRef.current.forEach((card, index) => {
-        if (card) {
-          gsap.fromTo(
-            card,
-            { y: 30, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.6,
-              delay: index * 0.1,
-              ease: 'power2.out',
-              scrollTrigger: {
-                trigger: card,
-                start: 'top 85%',
-                end: 'top 65%',
-                scrub: 1,
-              },
-            }
-          );
-        }
-      });
+      const cards = cardsRef.current.filter(Boolean) as HTMLDivElement[];
+      if (cards.length) {
+        ScrollTrigger.batch(cards, {
+          start: 'top 85%',
+          once: true,
+          onEnter: (batch) =>
+            gsap.fromTo(
+              batch,
+              { y: 28, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: 'power2.out',
+                stagger: 0.1,
+                overwrite: 'auto',
+              }
+            ),
+        });
+      }
 
-      // Press section animation
       gsap.fromTo(
         pressRef.current,
-        { y: 20, opacity: 0 },
+        { y: 18, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.6,
+          duration: 0.7,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: pressRef.current,
             start: 'top 85%',
-            end: 'top 65%',
-            scrub: 1,
+            toggleActions: 'play none none reverse',
           },
         }
       );
@@ -95,7 +89,7 @@ export default function TestimonialsSection({ data }: { data?: any }) {
   }, [testimonials.length, pressQuotes.length]);
 
   return (
-    <section ref={sectionRef} className="relative bg-[#F6F2EE] py-20 lg:py-28 z-[90]">
+    <section ref={sectionRef} className="relative bg-[#F6F2EE] py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Title */}
         <h2

@@ -32,45 +32,43 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
     if (!section) return;
 
     const ctx = gsap.context(() => {
-      // Title animation
       gsap.fromTo(
         titleRef.current,
-        { y: 24, opacity: 0 },
+        { y: 18, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.8,
+          duration: 0.7,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: titleRef.current,
-            start: 'top 80%',
-            end: 'top 55%',
-            scrub: 1,
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
           },
         }
       );
 
-      // Cards animation
-      const cards = gridRef.current?.querySelectorAll('.product-card');
-      if (cards) {
-        cards.forEach((card) => {
-          gsap.fromTo(
-            card,
-            { y: 40, opacity: 0, scale: 0.98 },
-            {
-              y: 0,
-              opacity: 1,
-              scale: 1,
-              duration: 0.6,
-              ease: 'power2.out',
-              scrollTrigger: {
-                trigger: card,
-                start: 'top 85%',
-                end: 'top 60%',
-                scrub: 1,
-              },
-            }
-          );
+      const cards = gsap.utils.toArray<HTMLElement>(
+        gridRef.current?.querySelectorAll('.product-card') ?? []
+      );
+      if (cards.length) {
+        ScrollTrigger.batch(cards, {
+          start: 'top 85%',
+          once: true,
+          onEnter: (batch) =>
+            gsap.fromTo(
+              batch,
+              { y: 28, opacity: 0, scale: 0.98 },
+              {
+                y: 0,
+                opacity: 1,
+                scale: 1,
+                duration: 0.6,
+                ease: 'power2.out',
+                stagger: 0.1,
+                overwrite: 'auto',
+              }
+            ),
         });
       }
     }, section);
@@ -82,7 +80,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
     <section
       ref={sectionRef}
       id="new-arrivals"
-      className="relative bg-[#F6F2EE] py-20 lg:py-28 z-50"
+      className="relative bg-[#F6F2EE] py-20 lg:py-28"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Title Row */}
@@ -104,10 +102,13 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
         >
           {newArrivals.map((product) => (
-            <div key={product.id} className="product-card group">
+            <div
+              key={product.id}
+              className="product-card group rounded-2xl border border-[#111]/10 bg-white/60 shadow-sm transition-shadow hover:shadow-lg p-4"
+            >
               {/* Image */}
               <div 
-                className="relative aspect-[4/5] overflow-hidden bg-gray-100 mb-4 cursor-pointer"
+                className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-100 mb-4 cursor-pointer"
                 onClick={() => navigate(`/product/${product.id}`)}
               >
                 <img

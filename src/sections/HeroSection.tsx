@@ -76,6 +76,8 @@ export default function HeroSection({ data }: { data?: HeroData }) {
         { opacity: 1, y: 0, duration: 0.5 },
         '-=0.2'
       );
+
+      return () => tl.kill();
     }, sectionRef);
 
     return () => ctx.revert();
@@ -90,64 +92,47 @@ export default function HeroSection({ data }: { data?: HeroData }) {
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: '+=130%',
-          pin: true,
-          scrub: 0.6,
-          onLeaveBack: () => {
-            // Reset all elements to visible when scrolling back
-            gsap.set([headlineRef.current, subheadlineRef.current, ctaRef.current], {
-              opacity: 1,
-              y: 0,
-              x: 0,
-            });
-            gsap.set(bgRef.current, { opacity: 1, scale: 1 });
-          },
+          start: 'top 75%',
+          toggleActions: 'play none none reverse',
         },
       });
 
-      // ENTRANCE (0-30%): Hold at load end state
-      // SETTLE (30-70%): Static
-      // EXIT (70-100%): Elements exit
+      scrollTl.fromTo(
+        bgRef.current,
+        { scale: 1.05, opacity: 0.85 },
+        { scale: 1, opacity: 1, duration: 0.9, ease: 'power2.out', immediateRender: false },
+        0
+      );
 
-      // Headline exit
       scrollTl.fromTo(
         headlineRef.current,
-        { y: 0, opacity: 1 },
-        { y: '-18vh', opacity: 0, ease: 'power2.in' },
-        0.7
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: 'power2.out', immediateRender: false },
+        0.05
       );
 
-      // Subheadline exit
       scrollTl.fromTo(
         subheadlineRef.current,
-        { y: 0, opacity: 1 },
-        { y: '-12vh', opacity: 0, ease: 'power2.in' },
-        0.72
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', immediateRender: false },
+        0.12
       );
 
-      // CTA exit
       scrollTl.fromTo(
         ctaRef.current,
-        { y: 0, opacity: 1 },
-        { y: '10vh', opacity: 0, ease: 'power2.in' },
-        0.7
+        { y: 12, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'power2.out', immediateRender: false },
+        0.18
       );
 
-      // Scroll hint exit
       scrollTl.fromTo(
         scrollHintRef.current,
-        { opacity: 1 },
-        { opacity: 0, ease: 'power2.in' },
-        0.6
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', immediateRender: false },
+        0.24
       );
 
-      // Background exit
-      scrollTl.to(
-        bgRef.current,
-        { scale: 1.06, opacity: 0.35, ease: 'power2.in' },
-        0.7
-      );
+      return () => scrollTl.kill();
     }, section);
 
     return () => ctx.revert();
@@ -163,7 +148,7 @@ export default function HeroSection({ data }: { data?: HeroData }) {
   const letters = content.headline.split('');
 
   return (
-    <section ref={sectionRef} className="section-pinned z-10 bg-[#0B0F17]">
+    <section ref={sectionRef} className="section-pinned bg-[#0B0F17]">
       {/* Background Image */}
       <div
         ref={bgRef}

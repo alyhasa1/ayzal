@@ -71,6 +71,16 @@
   line-height: 1.05;
 }
 
+@media (max-width: 768px) {
+  .headline-xl {
+    letter-spacing: 0.12em;
+  }
+
+  .headline-lg {
+    letter-spacing: 0.1em;
+  }
+}
+
 /* Body text */
 .body-text {
   font-family: 'Inter', sans-serif;
@@ -118,6 +128,21 @@
   height: 100vh;
   position: relative;
   overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .section-pinned {
+    height: 100svh;
+  }
+}
+
+@media (max-width: 1023px), (pointer: coarse) {
+  .section-pinned {
+    height: auto;
+    min-height: 70svh;
+    overflow: visible;
+    z-index: auto;
+  }
 }
 
 /* Button styles */

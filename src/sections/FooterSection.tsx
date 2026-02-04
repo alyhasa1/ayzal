@@ -40,17 +40,16 @@ export default function FooterSection({ data }: { data?: any }) {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         contentRef.current,
-        { y: 20, opacity: 0 },
+        { y: 18, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.8,
+          duration: 0.7,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: contentRef.current,
             start: 'top 85%',
-            end: 'top 65%',
-            scrub: 1,
+            toggleActions: 'play none none reverse',
           },
         }
       );
@@ -71,7 +70,7 @@ export default function FooterSection({ data }: { data?: any }) {
     <footer
       ref={sectionRef}
       id="contact"
-      className="relative bg-[#0B0F17] text-[#F6F2EE] py-16 lg:py-20 z-[130]"
+      className="relative bg-[#0B0F17] text-[#F6F2EE] py-16 lg:py-20"
     >
       <div ref={contentRef} className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Main Footer Content */}

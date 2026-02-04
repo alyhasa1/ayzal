@@ -41,92 +41,50 @@ export default function CategorySection({ data }: { data?: any }) {
     if (!section) return;
 
     const ctx = gsap.context(() => {
+      const panels = panelsRef.current.filter(Boolean) as HTMLDivElement[];
+      const labels = labelsRef.current.filter(Boolean) as HTMLDivElement[];
+
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: '+=150%',
-          pin: true,
-          scrub: 0.6,
+          start: 'top 75%',
+          toggleActions: 'play none none reverse',
         },
       });
 
-      // ENTRANCE (0-30%)
-      // Left panel
       scrollTl.fromTo(
-        panelsRef.current[0],
-        { x: '-40vw', opacity: 0 },
-        { x: 0, opacity: 1, ease: 'power2.out' },
+        panels,
+        { y: 28, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: 'power2.out', stagger: 0.12, immediateRender: false },
         0
       );
 
-      // Center panel
       scrollTl.fromTo(
-        panelsRef.current[1],
-        { y: '20vh', opacity: 0 },
-        { y: 0, opacity: 1, ease: 'power2.out' },
-        0.06
+        labels,
+        { y: 12, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'power2.out', stagger: 0.1, immediateRender: false },
+        0.12
       );
 
-      // Right panel
-      scrollTl.fromTo(
-        panelsRef.current[2],
-        { x: '40vw', opacity: 0 },
-        { x: 0, opacity: 1, ease: 'power2.out' },
-        0.1
-      );
-
-      // Labels
-      labelsRef.current.forEach((label, i) => {
-        scrollTl.fromTo(
-          label,
-          { scale: 0.96, opacity: 0 },
-          { scale: 1, opacity: 1, ease: 'power2.out' },
-          0.16 + i * 0.04
-        );
-      });
-
-      // SETTLE (30-70%): Hold
-
-      // EXIT (70-100%)
-      scrollTl.fromTo(
-        panelsRef.current[0],
-        { x: 0, opacity: 1 },
-        { x: '-18vw', opacity: 0, ease: 'power2.in' },
-        0.7
-      );
-
-      scrollTl.fromTo(
-        panelsRef.current[1],
-        { y: 0, opacity: 1 },
-        { y: '-12vh', opacity: 0, ease: 'power2.in' },
-        0.7
-      );
-
-      scrollTl.fromTo(
-        panelsRef.current[2],
-        { x: 0, opacity: 1 },
-        { x: '18vw', opacity: 0, ease: 'power2.in' },
-        0.7
-      );
+      return () => scrollTl.kill();
     }, section);
 
     return () => ctx.revert();
   }, [categories]);
 
   return (
-    <section ref={sectionRef} id="categories" className="section-pinned z-[70]">
+    <section ref={sectionRef} id="categories" className="section-pinned">
       {/* Background */}
       <div className="absolute inset-0 bg-[#F6F2EE] z-[1]" />
 
       {/* Panels */}
-      <div className="absolute inset-0 z-[5] flex">
+      <div className="relative z-[5] flex flex-col gap-4 px-6 py-8 md:absolute md:inset-0 md:flex-row md:gap-0 md:px-0 md:py-0">
         {categories.map((category, index) => (
           <div
             key={category.name}
             ref={(el) => { panelsRef.current[index] = el; }}
-            className={`category-panel flex-1 h-full relative ${
-              index === 0 ? 'w-[34vw]' : index === 1 ? 'w-[34vw]' : 'w-[32vw]'
+            className={`category-panel relative overflow-hidden w-full h-[32vh] rounded-2xl shadow-lg md:h-full md:flex-1 md:rounded-none md:shadow-none ${
+              index === 0 ? 'md:w-[34vw]' : index === 1 ? 'md:w-[34vw]' : 'md:w-[32vw]'
             }`}
           >
             {/* Background Image */}

@@ -30,72 +30,40 @@ export default function SpotlightSection({ data }: { data?: any }) {
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: '+=140%',
-          pin: true,
-          scrub: 0.6,
+          start: 'top 75%',
+          toggleActions: 'play none none reverse',
         },
       });
 
-      // ENTRANCE (0-30%)
       scrollTl.fromTo(
-        headlineRef.current,
-        { y: '20vh', opacity: 0, rotateX: 20 },
-        { y: 0, opacity: 1, rotateX: 0, ease: 'power2.out' },
+        bgRef.current,
+        { scale: 1.06, opacity: 0.75 },
+        { scale: 1, opacity: 1, duration: 0.9, ease: 'power2.out', immediateRender: false },
         0
       );
 
       scrollTl.fromTo(
-        priceRef.current,
-        { y: '10vh', opacity: 0 },
-        { y: 0, opacity: 1, ease: 'power2.out' },
-        0.1
-      );
-
-      scrollTl.fromTo(
-        ctaRef.current,
-        { scale: 0.92, opacity: 0 },
-        { scale: 1, opacity: 1, ease: 'power2.out' },
-        0.16
-      );
-
-      scrollTl.fromTo(
-        bgRef.current,
-        { x: '6vw', scale: 1.06, opacity: 0.7 },
-        { x: 0, scale: 1, opacity: 1, ease: 'power2.out' },
-        0
-      );
-
-      // SETTLE (30-70%): Hold
-
-      // EXIT (70-100%)
-      scrollTl.fromTo(
         headlineRef.current,
-        { x: 0, opacity: 1 },
-        { x: '-10vw', opacity: 0, ease: 'power2.in' },
-        0.7
+        { y: 22, opacity: 0, rotateX: 12 },
+        { y: 0, opacity: 1, rotateX: 0, duration: 0.7, ease: 'power2.out', immediateRender: false },
+        0.05
       );
 
       scrollTl.fromTo(
         priceRef.current,
-        { x: 0, opacity: 1 },
-        { x: '10vw', opacity: 0, ease: 'power2.in' },
-        0.72
+        { y: 12, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', immediateRender: false },
+        0.12
       );
 
       scrollTl.fromTo(
         ctaRef.current,
-        { y: 0, opacity: 1 },
-        { y: '12vh', opacity: 0, ease: 'power2.in' },
-        0.7
+        { y: 10, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'power2.out', immediateRender: false },
+        0.18
       );
 
-      scrollTl.fromTo(
-        bgRef.current,
-        { scale: 1, opacity: 1 },
-        { scale: 1.06, opacity: 0.35, ease: 'power2.in' },
-        0.7
-      );
+      return () => scrollTl.kill();
     }, section);
 
     return () => ctx.revert();

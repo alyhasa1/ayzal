@@ -31,58 +31,33 @@ export default function CampaignSection({ data }: { data?: CampaignData }) {
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: '+=130%',
-          pin: true,
-          scrub: 0.6,
+          start: 'top 75%',
+          toggleActions: 'play none none reverse',
         },
       });
 
-      // ENTRANCE (0-30%)
       scrollTl.fromTo(
-        headlineRef.current,
-        { scale: 0.97, opacity: 0, y: '12vh' },
-        { scale: 1, opacity: 1, y: 0, ease: 'power2.out' },
+        bgRef.current,
+        { scale: 1.06, opacity: 0.7 },
+        { scale: 1, opacity: 1, duration: 0.9, ease: 'power2.out', immediateRender: false },
         0
       );
 
       scrollTl.fromTo(
+        headlineRef.current,
+        { y: 22, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out', immediateRender: false },
+        0.06
+      );
+
+      scrollTl.fromTo(
         ctaRef.current,
-        { y: '10vh', opacity: 0 },
-        { y: 0, opacity: 1, ease: 'power2.out' },
+        { y: 12, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.55, ease: 'power2.out', immediateRender: false },
         0.14
       );
 
-      scrollTl.fromTo(
-        bgRef.current,
-        { scale: 1.08, opacity: 0.6 },
-        { scale: 1, opacity: 1, ease: 'power2.out' },
-        0
-      );
-
-      // SETTLE (30-70%): Hold
-
-      // EXIT (70-100%)
-      scrollTl.fromTo(
-        headlineRef.current,
-        { y: 0, opacity: 1 },
-        { y: '-14vh', opacity: 0, ease: 'power2.in' },
-        0.7
-      );
-
-      scrollTl.fromTo(
-        ctaRef.current,
-        { y: 0, opacity: 1 },
-        { y: '10vh', opacity: 0, ease: 'power2.in' },
-        0.7
-      );
-
-      scrollTl.fromTo(
-        bgRef.current,
-        { scale: 1, opacity: 1 },
-        { scale: 1.06, opacity: 0.35, ease: 'power2.in' },
-        0.7
-      );
+      return () => scrollTl.kill();
     }, section);
 
     return () => ctx.revert();
@@ -96,7 +71,7 @@ export default function CampaignSection({ data }: { data?: CampaignData }) {
   };
 
   return (
-    <section ref={sectionRef} className="section-pinned z-[100]">
+    <section ref={sectionRef} className="section-pinned">
       {/* Background Image */}
       <div ref={bgRef} className="absolute inset-0 z-[1]">
         <img
