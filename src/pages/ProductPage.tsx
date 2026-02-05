@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from '@remix-run/react';
+import { useNavigate, Link } from '@remix-run/react';
 import gsap from 'gsap';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/format';
@@ -135,7 +135,7 @@ export default function ProductPage({
               <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden">
                 <img
                   src={images[selectedImage]}
-                  alt={product.name}
+                  alt={`${product.name} - ${product.category} Pakistani Dress`}
                   className="w-full h-full object-cover transition-transform duration-500"
                 />
                 
@@ -182,6 +182,7 @@ export default function ProductPage({
                         src={img}
                         alt={`${product.name} view ${idx + 1}`}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                     </button>
                   ))}
@@ -412,23 +413,24 @@ export default function ProductPage({
             <h2 className="headline-lg text-2xl text-[#111] mb-8">You May Also Like</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((related) => (
-                <button
+                <Link
                   key={related.id}
-                  onClick={() => navigate(`/product/${related.slug ?? related.id}`)}
-                  className="text-left group"
+                  to={`/product/${related.slug ?? related.id}`}
+                  className="text-left group block"
                 >
                   <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-4">
                     <img
                       src={related.image}
-                      alt={related.name}
+                      alt={`${related.name} - ${related.category} Pakistani Dress`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                   <h3 className="font-medium text-sm text-[#111] mb-1 group-hover:text-[#D4A05A] transition-colors">
                     {related.name}
                   </h3>
                   <p className="text-sm text-[#6E6E6E]">{formatPrice(related.price)}</p>
-                </button>
+                </Link>
               ))}
             </div>
           </div>

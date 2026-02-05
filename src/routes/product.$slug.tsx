@@ -38,9 +38,10 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [];
   const { product } = data;
-  const title = `${product.name} | Ayzal Collections`;
+  const title = product.metaTitle || `${product.name} | Ayzal Collections`;
   const description =
-    product.description ??
+    product.metaDescription ||
+    product.description ||
     "Shop Ayzal Collections for pakistani dresses, lawn and unstitched lawn styles.";
   const ogImage = product.image
     ? product.image.startsWith("http")
@@ -61,6 +62,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
     { name: "twitter:image", content: ogImage },
+    { property: "product:price:amount", content: String(product.price) },
+    { property: "product:price:currency", content: "PKR" },
     { tagName: "link", rel: "canonical", href: url },
   ];
 };
@@ -95,13 +98,18 @@ export default function ProductRoute() {
     ],
   };
 
-  const productSchema = {
+  const productUrl = `${CANONICAL_BASE}/product/${product.slug ?? product.id}`;
+
+  const productSchema: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
+    url: productUrl,
     image: product.images && product.images.length > 0 ? product.images : [product.image],
     description: product.description,
     sku: product.sku,
+    category: product.category,
+    itemCondition: "https://schema.org/NewCondition",
     brand: {
       "@type": "Brand",
       name: "Ayzal Collections",
@@ -114,9 +122,13 @@ export default function ProductRoute() {
         product.inStock === false
           ? "https://schema.org/OutOfStock"
           : "https://schema.org/InStock",
-      url: `${CANONICAL_BASE}/product/${product.slug ?? product.id}`,
+      url: productUrl,
     },
   };
+
+  if (product.fabric) {
+    productSchema.material = product.fabric;
+  }
 
   return (
     <>

@@ -24,6 +24,8 @@ const emptyForm = {
   spotlight_rank: '',
   payment_method_ids: [] as string[],
   slug: '',
+  meta_title: '',
+  meta_description: '',
 };
 
 export default function AdminProducts() {
@@ -66,6 +68,8 @@ export default function AdminProducts() {
       spotlight_rank: product.spotlightRank ? String(product.spotlightRank) : '',
       payment_method_ids: product.paymentMethods?.map((method: any) => method.id) ?? [],
       slug: product.slug ?? '',
+      meta_title: product.metaTitle ?? '',
+      meta_description: product.metaDescription ?? '',
     });
   };
 
@@ -93,6 +97,8 @@ export default function AdminProducts() {
       is_new_arrival: form.is_new_arrival,
       spotlight_rank: form.spotlight_rank ? Number(form.spotlight_rank) : undefined,
       payment_method_ids: form.payment_method_ids as any,
+      meta_title: form.meta_title || undefined,
+      meta_description: form.meta_description || undefined,
     };
 
     if (editingId) {
@@ -300,6 +306,31 @@ export default function AdminProducts() {
                   {method.label}
                 </label>
               ))}
+            </div>
+          </div>
+          <div className="space-y-3 border-t border-[#111]/10 pt-4 mt-4">
+            <p className="label-text text-[#6E6E6E]">SEO</p>
+            <div>
+              <input
+                value={form.meta_title}
+                onChange={(e) => setForm({ ...form, meta_title: e.target.value })}
+                placeholder="SEO Title (leave blank for auto)"
+                className="w-full border border-[#111]/10 px-3 py-2"
+              />
+              <p className={`text-xs mt-1 ${form.meta_title.length > 60 ? 'text-red-500' : 'text-[#6E6E6E]'}`}>
+                {form.meta_title.length}/60 characters
+              </p>
+            </div>
+            <div>
+              <textarea
+                value={form.meta_description}
+                onChange={(e) => setForm({ ...form, meta_description: e.target.value })}
+                placeholder="SEO Description (leave blank for auto)"
+                className="w-full border border-[#111]/10 px-3 py-2 min-h-16"
+              />
+              <p className={`text-xs mt-1 ${form.meta_description.length > 160 ? 'text-red-500' : 'text-[#6E6E6E]'}`}>
+                {form.meta_description.length}/160 characters
+              </p>
             </div>
           </div>
           <div className="flex gap-3 pt-4">

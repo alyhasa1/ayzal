@@ -55,6 +55,8 @@ export default defineSchema({
     in_stock: v.optional(v.boolean()),
     is_new_arrival: v.optional(v.boolean()),
     spotlight_rank: v.optional(v.number()),
+    meta_title: v.optional(v.string()),
+    meta_description: v.optional(v.string()),
     created_at: v.number(),
     updated_at: v.number(),
   })

@@ -24,6 +24,8 @@ export interface Product {
   sku?: string;
   isNewArrival?: boolean;
   spotlightRank?: number;
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export interface CartItem extends Product {

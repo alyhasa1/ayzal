@@ -9,6 +9,17 @@ const formatDate = (value?: number) => {
   return new Date(value).toISOString();
 };
 
+const escapeXml = (str: string) =>
+  str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+type SitemapUrl = {
+  loc: string;
+  lastmod?: string;
+  changefreq: string;
+  priority: string;
+  image?: { loc: string; caption: string };
+};
+
 export const loader = async ({ context }: LoaderFunctionArgs) => {
   const convex = createConvexClient(context);
   const [products, categories] = await Promise.all([
@@ -16,25 +27,41 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
     convex.query(api.categories.listSeo),
   ]);
 
-  const urls = [
-    { loc: `${CANONICAL_BASE}/`, lastmod: new Date().toISOString() },
+  const urls: SitemapUrl[] = [
+    {
+      loc: `${CANONICAL_BASE}/`,
+      lastmod: new Date().toISOString(),
+      changefreq: "daily",
+      priority: "1.0",
+    },
     ...(categories ?? []).map((category) => ({
       loc: `${CANONICAL_BASE}/category/${category.slug}`,
       lastmod: formatDate(category.updated_at),
+      changefreq: "weekly",
+      priority: "0.7",
     })),
     ...(products ?? []).map((product) => ({
       loc: `${CANONICAL_BASE}/product/${product.slug}`,
       lastmod: formatDate(product.updated_at),
+      changefreq: "weekly",
+      priority: "0.8",
+      image: product.primary_image_url
+        ? { loc: product.primary_image_url, caption: product.name }
+        : undefined,
     })),
   ];
 
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n` +
+    `        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n` +
     urls
       .map((url) => {
-        const lastmod = url.lastmod ? `<lastmod>${url.lastmod}</lastmod>` : "";
-        return `  <url><loc>${url.loc}</loc>${lastmod}</url>`;
+        const lastmod = url.lastmod ? `\n    <lastmod>${url.lastmod}</lastmod>` : "";
+        const imageTag = url.image
+          ? `\n    <image:image>\n      <image:loc>${escapeXml(url.image.loc)}</image:loc>\n      <image:caption>${escapeXml(url.image.caption)}</image:caption>\n    </image:image>`
+          : "";
+        return `  <url>\n    <loc>${url.loc}</loc>${lastmod}\n    <changefreq>${url.changefreq}</changefreq>\n    <priority>${url.priority}</priority>${imageTag}\n  </url>`;
       })
       .join("\n") +
     "\n</urlset>";

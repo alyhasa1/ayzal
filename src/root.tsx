@@ -115,6 +115,19 @@ export default function App() {
             __html: `window.ENV = ${JSON.stringify(ENV)};`,
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Ayzal Collections",
+              url: CANONICAL_BASE,
+              logo: `${CANONICAL_BASE}/og.png`,
+              sameAs: [],
+            }),
+          }}
+        />
       </head>
       <body>
         <CartProvider>

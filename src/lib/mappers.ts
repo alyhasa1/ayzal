@@ -29,5 +29,7 @@ export const mapProduct = (product: any): Product => ({
   sku: product.sku,
   isNewArrival: product.is_new_arrival,
   spotlightRank: product.spotlight_rank,
+  metaTitle: product.meta_title,
+  metaDescription: product.meta_description,
   paymentMethods: product.payment_methods?.map(mapPaymentMethod) ?? [],
 });

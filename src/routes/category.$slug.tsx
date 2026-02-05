@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { useLoaderData, useNavigate } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
@@ -55,7 +55,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export default function CategoryRoute() {
   const { category, products } = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -115,24 +114,25 @@ export default function CategoryRoute() {
               key={product.id}
               className="group rounded-2xl border border-[#111]/10 bg-white/60 shadow-sm transition-shadow hover:shadow-lg p-4"
             >
-              <div
-                className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-100 mb-4 cursor-pointer"
-                onClick={() => navigate(`/product/${product.slug ?? product.id}`)}
+              <Link
+                to={`/product/${product.slug ?? product.id}`}
+                className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-100 mb-4 block"
               >
                 <img
                   src={product.image}
-                  alt={product.name}
+                  alt={`${product.name} - ${product.category} Pakistani Dress`}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
-              </div>
+              </Link>
               <div className="space-y-1">
                 <p className="label-text text-[#6E6E6E]">{product.category}</p>
-                <button
-                  onClick={() => navigate(`/product/${product.slug ?? product.id}`)}
-                  className="font-medium text-sm text-[#111] hover:text-[#D4A05A] transition-colors text-left"
+                <Link
+                  to={`/product/${product.slug ?? product.id}`}
+                  className="font-medium text-sm text-[#111] hover:text-[#D4A05A] transition-colors text-left block"
                 >
                   {product.name}
-                </button>
+                </Link>
                 <p className="text-sm text-[#6E6E6E]">{formatPrice(product.price)}</p>
               </div>
             </div>

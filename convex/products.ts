@@ -1,4 +1,5 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalAction } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireAdmin } from "./lib/auth";
 import { slugify } from "./lib/slugify";
@@ -26,6 +27,8 @@ const productFields = {
   in_stock: v.optional(v.boolean()),
   is_new_arrival: v.optional(v.boolean()),
   spotlight_rank: v.optional(v.number()),
+  meta_title: v.optional(v.string()),
+  meta_description: v.optional(v.string()),
 };
 
 async function generateUniqueSlug(ctx: any, baseSlug: string, excludeId?: string) {
@@ -137,6 +140,8 @@ export const listSeo = query({
       .map((product) => ({
         slug: product.slug,
         updated_at: product.updated_at,
+        name: product.name,
+        primary_image_url: product.primary_image_url,
       }));
   },
 });
@@ -232,6 +237,7 @@ export const create = mutation({
         payment_method_id: paymentId,
       });
     }
+    await ctx.scheduler.runAfter(0, internal.products.pingSitemap, {});
     return productId;
   },
 });
@@ -272,6 +278,7 @@ export const update = mutation({
         });
       }
     }
+    await ctx.scheduler.runAfter(0, internal.products.pingSitemap, {});
   },
 });
 
@@ -305,5 +312,19 @@ export const remove = mutation({
       await ctx.db.delete(link._id);
     }
     await ctx.db.delete(args.id);
+    await ctx.scheduler.runAfter(0, internal.products.pingSitemap, {});
+  },
+});
+
+export const pingSitemap = internalAction({
+  args: {},
+  handler: async () => {
+    try {
+      await fetch(
+        "https://www.google.com/ping?sitemap=https://ayzalcollections.com/sitemap.xml"
+      );
+    } catch {
+      // best-effort ping — do not block on failure
+    }
   },
 });
