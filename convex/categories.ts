@@ -27,10 +27,12 @@ export const listWithCounts = query({
 export const listSeo = query({
   handler: async (ctx) => {
     const categories = await ctx.db.query("categories").withIndex("by_sort").collect();
-    return categories.map((category) => ({
-      slug: category.slug,
-      updated_at: category.updated_at,
-    }));
+    return categories
+      .filter((category) => !!category.slug)
+      .map((category) => ({
+        slug: category.slug,
+        updated_at: category.updated_at,
+      }));
   },
 });
 
