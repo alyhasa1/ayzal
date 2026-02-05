@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "remix dev --command \"npx wrangler@4.62.0 pages dev ./public --compatibility-date=2026-02-05 --port 3000\"",
+    "dev": "remix dev --command \"npx --yes wrangler@4.62.0 pages dev ./public --compatibility-date=2026-02-05 --port 3000\"",
     "dev:watch": "concurrently -k \"npm run dev:build\" \"npm run dev:pages\"",
     "dev:build": "remix watch",
-    "dev:pages": "npx wrangler@4.62.0 pages dev ./public --compatibility-date=2026-02-05 --port 3000",
+    "dev:pages": "npx --yes wrangler@4.62.0 pages dev ./public --compatibility-date=2026-02-05 --port 3000",
     "build": "remix build && node scripts/prepare-pages-output.mjs",
     "lint": "eslint .",
     "start": "remix-serve build",
