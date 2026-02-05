@@ -3,6 +3,25 @@ import { useNavigate } from '@remix-run/react';
 import { useConvexAuth } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
 
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function formatAuthError(err: unknown) {
+  const message = (err as { message?: string } | null)?.message ?? '';
+  if (
+    message.includes('InvalidAccountId') ||
+    message.includes('InvalidSecret') ||
+    message.includes('Invalid credentials')
+  ) {
+    return 'Invalid email or password.';
+  }
+  if (message.includes('TooManyFailedAttempts')) {
+    return 'Too many failed attempts. Please try again later.';
+  }
+  return message || 'Unable to sign in';
+}
+
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,13 +43,14 @@ export default function AdminLogin() {
     setError(null);
     setLoading(true);
     try {
+      const normalizedEmail = normalizeEmail(email);
       await signIn('password', {
         flow: mode,
-        email,
+        email: normalizedEmail,
         password,
       });
-    } catch (err: any) {
-      setError(err?.message ?? 'Unable to sign in');
+    } catch (err: unknown) {
+      setError(formatAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -50,6 +70,9 @@ export default function AdminLogin() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             className="w-full bg-transparent border border-white/20 px-4 py-3 text-sm focus:outline-none focus:border-[#D4A05A]"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             required
           />
           <input
