@@ -1,13 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
+import { useNavigate } from '@remix-run/react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/format';
-import { mapProduct } from '@/lib/mappers';
+import type { Product } from '@/types';
+import { ensureScrollTrigger } from '@/lib/gsap';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -24,18 +21,14 @@ import {
   Heart
 } from 'lucide-react';
 
-gsap.registerPlugin(ScrollTrigger);
-
-export default function ProductPage() {
-  const { id } = useParams<{ id: string }>();
+export default function ProductPage({
+  product,
+  relatedProducts,
+}: {
+  product: Product;
+  relatedProducts: Product[];
+}) {
   const navigate = useNavigate();
-  const productRaw = useQuery(api.products.getById, id ? { id: id as Id<'products'> } : 'skip');
-  const product = productRaw ? mapProduct(productRaw) : null;
-  const relatedRaw = useQuery(
-    api.products.listRelated,
-    productRaw ? { productId: productRaw._id as Id<'products'> } : 'skip'
-  );
-  const relatedProducts = (relatedRaw ?? []).map(mapProduct);
   const { addToCart } = useCart();
   
   const [selectedImage, setSelectedImage] = useState(0);
@@ -49,7 +42,7 @@ export default function ProductPage() {
   const relatedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!product) return;
+    ensureScrollTrigger();
     
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -89,35 +82,7 @@ export default function ProductPage() {
     setSelectedImage(0);
     setQuantity(1);
     setIsAdded(false);
-  }, [id]);
-
-  if (productRaw === undefined) {
-    return (
-      <div className="min-h-screen bg-[#F6F2EE] flex items-center justify-center">
-        <div className="text-center text-sm text-[#6E6E6E]">Loading product...</div>
-      </div>
-    );
-  }
-
-  if (productRaw === null) {
-    return (
-      <div className="min-h-screen bg-[#F6F2EE] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-display text-2xl text-[#111] mb-4">Product Not Found</h1>
-          <button 
-            onClick={() => navigate('/')}
-            className="btn-primary"
-          >
-            Back to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return null;
-  }
+  }, [product.id]);
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
 
@@ -146,7 +111,12 @@ export default function ProductPage() {
             Home
           </button>
           <ChevronRight className="w-4 h-4" />
-          <button onClick={() => navigate('/#products')} className="hover:text-[#D4A05A] transition-colors">
+          <button
+            onClick={() =>
+              navigate(product.categorySlug ? `/category/${product.categorySlug}` : '/#products')
+            }
+            className="hover:text-[#D4A05A] transition-colors"
+          >
             {product.category}
           </button>
           <ChevronRight className="w-4 h-4" />
@@ -444,7 +414,7 @@ export default function ProductPage() {
               {relatedProducts.map((related) => (
                 <button
                   key={related.id}
-                  onClick={() => navigate(`/product/${related.id}`)}
+                  onClick={() => navigate(`/product/${related.slug ?? related.id}`)}
                   className="text-left group"
                 >
                   <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-4">

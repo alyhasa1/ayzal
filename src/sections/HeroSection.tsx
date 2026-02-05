@@ -1,8 +1,7 @@
-import { useEffect, useRef, useLayoutEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 type HeroData = {
   headline?: string;
@@ -32,6 +31,7 @@ export default function HeroSection({ data }: { data?: HeroData }) {
 
   // Auto-play entrance animation on load
   useEffect(() => {
+    ensureScrollTrigger();
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
 
@@ -84,7 +84,8 @@ export default function HeroSection({ data }: { data?: HeroData }) {
   }, []);
 
   // Scroll-driven exit animation
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 
@@ -160,7 +161,7 @@ export default function HeroSection({ data }: { data?: HeroData }) {
           alt={`${content.headline} Hero`}
           className="w-full h-full object-cover"
           loading="eager"
-          fetchPriority="high"
+          fetchpriority="high"
           decoding="async"
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageLoaded(true)}

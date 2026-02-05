@@ -1,10 +1,12 @@
 export interface Product {
   id: string;
   name: string;
+  slug?: string;
   price: number;
   image: string;
   images?: string[];
   category: string;
+  categorySlug?: string;
   categoryId?: string;
   paymentMethods?: PaymentMethod[];
   description?: string;

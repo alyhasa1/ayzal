@@ -1,39 +1,35 @@
-import { useRef, useLayoutEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useRef, useMemo, useState } from 'react';
+import { useNavigate } from '@remix-run/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { formatPrice } from '@/lib/format';
 import { mapProduct } from '@/lib/mappers';
 import { useCart } from '@/hooks/useCart';
 import { Plus, Filter } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 export default function AllProductsSection({ data }: { data?: any }) {
-  void data;
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const { addToCart } = useCart();
   const navigate = useNavigate();
-
-  const productsRaw = useQuery(api.products.list);
-  const categoriesRaw = useQuery(api.categories.list);
+  const homeData = data?.homeData;
 
   const categories = useMemo(() => {
-    const names = categoriesRaw?.map((category) => category.name) ?? [];
+    const names = homeData?.categories?.map((category: any) => category.name) ?? [];
     return ['All', ...names];
-  }, [categoriesRaw]);
+  }, [homeData?.categories]);
 
-  const products = (productsRaw ?? []).map(mapProduct);
+  const products = (homeData?.products ?? []).map(mapProduct);
   const filteredProducts = selectedCategory === 'All'
     ? products
     : products.filter(p => p.category === selectedCategory);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 
@@ -127,7 +123,7 @@ export default function AllProductsSection({ data }: { data?: any }) {
               {/* Image */}
               <div 
                 className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-100 mb-4 cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`)}
+                onClick={() => navigate(`/product/${product.slug ?? product.id}`)}
               >
                 <img
                   src={product.image}
@@ -151,7 +147,7 @@ export default function AllProductsSection({ data }: { data?: any }) {
               <div className="space-y-1">
                 <p className="label-text text-[#6E6E6E]">{product.category}</p>
                 <button 
-                  onClick={() => navigate(`/product/${product.id}`)}
+                  onClick={() => navigate(`/product/${product.slug ?? product.id}`)}
                   className="font-medium text-sm text-[#111] hover:text-[#D4A05A] transition-colors text-left"
                 >
                   {product.name}

@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin } from "./lib/auth";
+import { slugify } from "./lib/slugify";
 
 const productFields = {
   name: v.string(),
@@ -27,7 +28,34 @@ const productFields = {
   spotlight_rank: v.optional(v.number()),
 };
 
-async function attachRelations(ctx: any, product: any) {
+async function generateUniqueSlug(ctx: any, baseSlug: string, excludeId?: string) {
+  const normalizedBase = baseSlug || "product";
+  let slug = normalizedBase;
+  let existing = await ctx.db
+    .query("products")
+    .withIndex("by_slug", (q: any) => q.eq("slug", slug))
+    .unique();
+
+  if (!existing || (excludeId && existing._id === excludeId)) {
+    return slug;
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const suffix = Math.random().toString(36).slice(2, 6);
+    slug = `${normalizedBase}-${suffix}`;
+    existing = await ctx.db
+      .query("products")
+      .withIndex("by_slug", (q: any) => q.eq("slug", slug))
+      .unique();
+    if (!existing || (excludeId && existing._id === excludeId)) {
+      return slug;
+    }
+  }
+
+  return `${normalizedBase}-${Date.now().toString(36)}`;
+}
+
+export async function attachRelations(ctx: any, product: any) {
   const category = await ctx.db.get(product.category_id);
   const links = await ctx.db
     .query("product_payment_methods")
@@ -41,18 +69,23 @@ async function attachRelations(ctx: any, product: any) {
   return {
     ...product,
     category_name: category?.name ?? "",
+    category_slug: category?.slug ?? "",
     payment_methods: methods,
   };
+}
+
+async function attachMany(ctx: any, products: any[]) {
+  const results = [];
+  for (const product of products) {
+    results.push(await attachRelations(ctx, product));
+  }
+  return results;
 }
 
 export const list = query({
   handler: async (ctx) => {
     const products = await ctx.db.query("products").collect();
-    const results = [];
-    for (const product of products) {
-      results.push(await attachRelations(ctx, product));
-    }
-    return results;
+    return await attachMany(ctx, products);
   },
 });
 
@@ -62,11 +95,7 @@ export const listNewArrivals = query({
       .query("products")
       .withIndex("by_new_arrival", (q) => q.eq("is_new_arrival", true))
       .collect();
-    const results = [];
-    for (const product of products) {
-      results.push(await attachRelations(ctx, product));
-    }
-    return results;
+    return await attachMany(ctx, products);
   },
 });
 
@@ -80,11 +109,35 @@ export const listRelated = query({
       .withIndex("by_category", (q) => q.eq("category_id", product.category_id))
       .collect();
     const filtered = products.filter((p) => p._id !== args.productId).slice(0, 4);
-    const results = [];
-    for (const item of filtered) {
-      results.push(await attachRelations(ctx, item));
-    }
-    return results;
+    return await attachMany(ctx, filtered);
+  },
+});
+
+export const listByCategorySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const category = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+    if (!category) return [];
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_category", (q) => q.eq("category_id", category._id))
+      .collect();
+    return await attachMany(ctx, products);
+  },
+});
+
+export const listSeo = query({
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    return products
+      .filter((product) => !!product.slug)
+      .map((product) => ({
+        slug: product.slug,
+        updated_at: product.updated_at,
+      }));
   },
 });
 
@@ -117,6 +170,31 @@ export const getById = query({
   },
 });
 
+export const getBySlugOrId = query({
+  args: { slugOrId: v.string() },
+  handler: async (ctx, args) => {
+    const normalizedId = ctx.db.normalizeId("products", args.slugOrId);
+    if (normalizedId) {
+      const byId = await ctx.db.get(normalizedId);
+      if (!byId) return null;
+      return {
+        product: await attachRelations(ctx, byId),
+        matchedBy: "id" as const,
+      };
+    }
+
+    const bySlug = await ctx.db
+      .query("products")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slugOrId))
+      .unique();
+    if (!bySlug) return null;
+    return {
+      product: await attachRelations(ctx, bySlug),
+      matchedBy: "slug" as const,
+    };
+  },
+});
+
 export const create = mutation({
   args: {
     ...productFields,
@@ -125,8 +203,10 @@ export const create = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
     const now = Date.now();
+    const slug = await generateUniqueSlug(ctx, slugify(args.name));
     const productId = await ctx.db.insert("products", {
       name: args.name,
+      slug,
       price: args.price,
       primary_image_url: args.primary_image_url,
       image_urls: args.image_urls,
@@ -173,6 +253,9 @@ export const update = mutation({
         update[key] = value;
       }
     }
+    if (args.name !== undefined) {
+      update.slug = await generateUniqueSlug(ctx, slugify(args.name), args.id);
+    }
     await ctx.db.patch(args.id, update);
     if (args.payment_method_ids) {
       const existing = await ctx.db
@@ -189,6 +272,24 @@ export const update = mutation({
         });
       }
     }
+  },
+});
+
+export const backfillSlugs = mutation({
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const products = await ctx.db.query("products").collect();
+    let updated = 0;
+    for (const product of products) {
+      if (product.slug) continue;
+      const slug = await generateUniqueSlug(ctx, slugify(product.name), product._id);
+      await ctx.db.patch(product._id, {
+        slug,
+        updated_at: Date.now(),
+      });
+      updated += 1;
+    }
+    return { updated };
   },
 });
 

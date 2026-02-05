@@ -23,6 +23,7 @@ const emptyForm = {
   is_new_arrival: false,
   spotlight_rank: '',
   payment_method_ids: [] as string[],
+  slug: '',
 };
 
 export default function AdminProducts() {
@@ -64,6 +65,7 @@ export default function AdminProducts() {
       is_new_arrival: product.isNewArrival ?? false,
       spotlight_rank: product.spotlightRank ? String(product.spotlightRank) : '',
       payment_method_ids: product.paymentMethods?.map((method: any) => method.id) ?? [],
+      slug: product.slug ?? '',
     });
   };
 
@@ -155,6 +157,14 @@ export default function AdminProducts() {
             className="w-full border border-[#111]/10 px-3 py-2"
             required
           />
+          {editingId && (
+            <input
+              value={form.slug}
+              readOnly
+              placeholder="Slug"
+              className="w-full border border-[#111]/10 px-3 py-2 bg-[#111]/5 text-[#6E6E6E]"
+            />
+          )}
           <input
             type="number"
             value={form.price}

@@ -1,9 +1,8 @@
-import { useRef, useLayoutEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Check } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 type MembershipData = {
   headline?: string;
@@ -27,7 +26,8 @@ export default function MembershipSection({ data }: { data?: MembershipData }) {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 

@@ -11,6 +11,30 @@ import {
 } from "./seedData";
 import { slugify } from "./lib/slugify";
 
+async function generateUniqueSlug(ctx: any, baseSlug: string) {
+  const normalizedBase = baseSlug || "product";
+  let slug = normalizedBase;
+  let existing = await ctx.db
+    .query("products")
+    .withIndex("by_slug", (q: any) => q.eq("slug", slug))
+    .unique();
+  if (!existing) {
+    return slug;
+  }
+  for (let i = 0; i < 5; i++) {
+    const suffix = Math.random().toString(36).slice(2, 6);
+    slug = `${normalizedBase}-${suffix}`;
+    existing = await ctx.db
+      .query("products")
+      .withIndex("by_slug", (q: any) => q.eq("slug", slug))
+      .unique();
+    if (!existing) {
+      return slug;
+    }
+  }
+  return `${normalizedBase}-${Date.now().toString(36)}`;
+}
+
 export const seed = mutation({
   handler: async (ctx) => {
     const existingAdminUsers = await ctx.db.query("admin_users").take(1);
@@ -60,8 +84,10 @@ export const seed = mutation({
         const category = categoryByName.get(product.category);
         if (!category) continue;
         const now = Date.now();
+        const slug = await generateUniqueSlug(ctx, slugify(product.name));
         const productId = await ctx.db.insert("products", {
           name: product.name,
+          slug,
           price: product.price,
           primary_image_url: product.image,
           image_urls: product.images,

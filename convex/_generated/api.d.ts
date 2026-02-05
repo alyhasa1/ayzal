@@ -20,6 +20,7 @@ import type * as pressQuotes from "../pressQuotes.js";
 import type * as products from "../products.js";
 import type * as seed from "../seed.js";
 import type * as seedData from "../seedData.js";
+import type * as siteHome from "../siteHome.js";
 import type * as siteSections from "../siteSections.js";
 import type * as siteSettings from "../siteSettings.js";
 import type * as testimonials from "../testimonials.js";
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   seed: typeof seed;
   seedData: typeof seedData;
+  siteHome: typeof siteHome;
   siteSections: typeof siteSections;
   siteSettings: typeof siteSettings;
   testimonials: typeof testimonials;

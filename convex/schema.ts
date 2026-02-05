@@ -12,7 +12,7 @@ export default defineSchema({
 
   categories: defineTable({
     name: v.string(),
-    slug: v.string(),
+    slug: v.optional(v.string()),
     image_url: v.string(),
     sort_order: v.number(),
     created_at: v.number(),
@@ -33,6 +33,7 @@ export default defineSchema({
 
   products: defineTable({
     name: v.string(),
+    slug: v.string(),
     price: v.number(),
     primary_image_url: v.string(),
     image_urls: v.optional(v.array(v.string())),
@@ -59,7 +60,8 @@ export default defineSchema({
   })
     .index("by_category", ["category_id"])
     .index("by_spotlight", ["spotlight_rank"])
-    .index("by_new_arrival", ["is_new_arrival"]),
+    .index("by_new_arrival", ["is_new_arrival"])
+    .index("by_slug", ["slug"]),
 
   product_payment_methods: defineTable({
     product_id: v.id("products"),

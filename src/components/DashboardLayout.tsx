@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from '@remix-run/react';
 import { LogOut } from 'lucide-react';
 import { useAuthActions } from '@convex-dev/auth/react';
 

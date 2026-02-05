@@ -12,6 +12,10 @@ export default function AdminSettings() {
   const [contactLocation, setContactLocation] = useState('');
   const [footerLinks, setFooterLinks] = useState('');
   const [socialLinks, setSocialLinks] = useState('');
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
+  const [seoOgImage, setSeoOgImage] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,6 +26,10 @@ export default function AdminSettings() {
     setContactLocation(data.contact_location ?? '');
     setFooterLinks(JSON.stringify(data.footer_links ?? { shop: [], help: [], company: [] }, null, 2));
     setSocialLinks(JSON.stringify(data.social_links ?? { instagram: '', facebook: '' }, null, 2));
+    setSeoTitle(data.seo?.title ?? '');
+    setSeoDescription(data.seo?.description ?? '');
+    setSeoKeywords(data.seo?.keywords ?? '');
+    setSeoOgImage(data.seo?.og_image ?? '');
   }, [settingsRaw]);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -38,6 +46,12 @@ export default function AdminSettings() {
           contact_location: contactLocation,
           footer_links,
           social_links,
+          seo: {
+            title: seoTitle,
+            description: seoDescription,
+            keywords: seoKeywords,
+            og_image: seoOgImage,
+          },
         },
       });
     } catch (err: any) {
@@ -71,6 +85,34 @@ export default function AdminSettings() {
           value={contactLocation}
           onChange={(e) => setContactLocation(e.target.value)}
           placeholder="Contact location"
+          className="w-full border border-[#111]/10 px-3 py-2"
+        />
+        <label className="label-text text-[#6E6E6E]">SEO title</label>
+        <input
+          value={seoTitle}
+          onChange={(e) => setSeoTitle(e.target.value)}
+          placeholder="SEO title"
+          className="w-full border border-[#111]/10 px-3 py-2"
+        />
+        <label className="label-text text-[#6E6E6E]">SEO description</label>
+        <textarea
+          value={seoDescription}
+          onChange={(e) => setSeoDescription(e.target.value)}
+          placeholder="SEO description"
+          className="w-full border border-[#111]/10 px-3 py-2 min-h-24"
+        />
+        <label className="label-text text-[#6E6E6E]">SEO keywords</label>
+        <input
+          value={seoKeywords}
+          onChange={(e) => setSeoKeywords(e.target.value)}
+          placeholder="SEO keywords"
+          className="w-full border border-[#111]/10 px-3 py-2"
+        />
+        <label className="label-text text-[#6E6E6E]">SEO OG image</label>
+        <input
+          value={seoOgImage}
+          onChange={(e) => setSeoOgImage(e.target.value)}
+          placeholder="/og.png"
           className="w-full border border-[#111]/10 px-3 py-2"
         />
         <label className="label-text text-[#6E6E6E]">Footer links JSON</label>

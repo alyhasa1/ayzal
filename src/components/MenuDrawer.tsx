@@ -1,33 +1,31 @@
 import { useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useNavigate, useLocation } from '@remix-run/react';
 import { X } from 'lucide-react';
 
 interface MenuDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  categories?: { name: string; slug?: string }[];
 }
 
-export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
+export default function MenuDrawer({ isOpen, onClose, categories = [] }: MenuDrawerProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const categoriesRaw = useQuery(api.categories.list);
 
   const menuItems = useMemo(() => {
     const items = [
       { label: 'Shop All', href: '/#products' },
       { label: 'New Arrivals', href: '/#new-arrivals' },
     ];
-    if (categoriesRaw) {
-      categoriesRaw.forEach((category) => {
-        items.push({ label: category.name, href: '/#categories' });
-      });
-    }
+    categories.forEach((category) => {
+      if (category.slug) {
+        items.push({ label: category.name, href: `/category/${category.slug}` });
+      }
+    });
     items.push({ label: 'Our Story', href: '/#story' });
     items.push({ label: 'Contact', href: '/#contact' });
     return items;
-  }, [categoriesRaw]);
+  }, [categories]);
 
   const handleClick = (href: string) => {
     onClose();

@@ -1,17 +1,13 @@
-import { useRef, useLayoutEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useRef } from 'react';
+import { useNavigate } from '@remix-run/react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/format';
 import { mapProduct } from '@/lib/mappers';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 export default function SpotlightSection({ data }: { data?: any }) {
-  void data;
   const sectionRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
@@ -19,10 +15,11 @@ export default function SpotlightSection({ data }: { data?: any }) {
   const ctaRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCart();
   const navigate = useNavigate();
-  const spotlightRaw = useQuery(api.products.getSpotlight);
-  const spotlightProduct = spotlightRaw ? mapProduct(spotlightRaw) : null;
+  const homeData = data?.homeData;
+  const spotlightProduct = homeData?.spotlight ? mapProduct(homeData.spotlight) : null;
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 
@@ -113,7 +110,7 @@ export default function SpotlightSection({ data }: { data?: any }) {
             Add to Bag
           </button>
           <button
-            onClick={() => navigate(`/product/${spotlightProduct.id}`)}
+            onClick={() => navigate(`/product/${spotlightProduct.slug ?? spotlightProduct.id}`)}
             className="text-sm text-white/70 hover:text-white underline underline-offset-4 transition-colors"
           >
             View Details

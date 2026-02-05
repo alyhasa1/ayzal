@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from '@remix-run/react';
 import DashboardLayout from '@/components/DashboardLayout';
 
 const navItems = [

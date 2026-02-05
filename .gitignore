@@ -1,6 +1,11 @@
 node_modules/
 dist/
+.cache/
+.wrangler/
+public/build/
+functions/
 .env
 .env.local
 .env.*
+.dev.vars
 .DS_Store

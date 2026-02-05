@@ -11,10 +11,12 @@ export const mapPaymentMethod = (method: any): PaymentMethod => ({
 export const mapProduct = (product: any): Product => ({
   id: product._id,
   name: product.name,
+  slug: product.slug,
   price: product.price,
   image: product.primary_image_url,
   images: product.image_urls ?? [],
   category: product.category_name ?? "",
+  categorySlug: product.category_slug ?? "",
   categoryId: product.category_id,
   description: product.description,
   fabric: product.fabric,

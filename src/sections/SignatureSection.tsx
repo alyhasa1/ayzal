@@ -1,8 +1,7 @@
-import { useRef, useLayoutEffect } from 'react';
+import { useRef } from 'react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 type SignatureData = {
   headline?: string;
@@ -26,7 +25,8 @@ export default function SignatureSection({ data }: { data?: SignatureData }) {
   const subheadlineRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLButtonElement>(null);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 

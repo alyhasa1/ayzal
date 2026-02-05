@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@remix-run/react';
 import { useConvexAuth } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
 

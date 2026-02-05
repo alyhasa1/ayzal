@@ -1,32 +1,28 @@
-import { useRef, useLayoutEffect, useMemo } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useRef, useMemo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Quote } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 export default function TestimonialsSection({ data }: { data?: any }) {
-  void data;
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const pressRef = useRef<HTMLDivElement>(null);
-
-  const testimonialsRaw = useQuery(api.testimonials.list);
-  const pressQuotesRaw = useQuery(api.pressQuotes.list);
+  const homeData = data?.homeData;
 
   const testimonials = useMemo(
-    () => (testimonialsRaw ?? []).filter((item) => item.enabled !== false),
-    [testimonialsRaw]
+    () => (homeData?.testimonials ?? []).filter((item: any) => item.enabled !== false),
+    [homeData?.testimonials]
   );
   const pressQuotes = useMemo(
-    () => (pressQuotesRaw ?? []).filter((item) => item.enabled !== false),
-    [pressQuotesRaw]
+    () => (homeData?.pressQuotes ?? []).filter((item: any) => item.enabled !== false),
+    [homeData?.pressQuotes]
   );
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 

@@ -1,33 +1,30 @@
-import { useRef, useLayoutEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useRef } from 'react';
+import { useNavigate } from '@remix-run/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { formatPrice } from '@/lib/format';
 import { mapProduct } from '@/lib/mappers';
 import { useCart } from '@/hooks/useCart';
 import { Plus } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 export default function NewArrivalsSection({ data }: { data?: any }) {
-  void data;
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  const newArrivalsRaw = useQuery(api.products.listNewArrivals);
-  const allProductsRaw = useQuery(api.products.list);
-  const newArrivals = (newArrivalsRaw && newArrivalsRaw.length > 0
-    ? newArrivalsRaw
-    : allProductsRaw ?? [])
-    .slice(0, 6)
-    .map(mapProduct);
+  const homeData = data?.homeData;
+  const sourceProducts =
+    homeData?.newArrivals && homeData.newArrivals.length > 0
+      ? homeData.newArrivals
+      : homeData?.products ?? [];
+  const newArrivals = sourceProducts.slice(0, 6).map(mapProduct);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 
@@ -109,7 +106,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
               {/* Image */}
               <div 
                 className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-100 mb-4 cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`)}
+                onClick={() => navigate(`/product/${product.slug ?? product.id}`)}
               >
                 <img
                   src={product.image}
@@ -132,7 +129,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
               {/* Info */}
               <div className="space-y-1">
                 <button 
-                  onClick={() => navigate(`/product/${product.id}`)}
+                  onClick={() => navigate(`/product/${product.slug ?? product.id}`)}
                   className="font-medium text-sm text-[#111] hover:text-[#D4A05A] transition-colors text-left"
                 >
                   {product.name}

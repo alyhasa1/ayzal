@@ -1,11 +1,8 @@
-import { useRef, useLayoutEffect, useMemo, useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useRef, useMemo, useState } from 'react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Mail, Phone, MapPin, Instagram, Facebook, ArrowRight, Check } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 const defaultLinks = {
   shop: ['New Arrivals', 'Formals', 'Ready-to-Wear', 'Bridal', 'Accessories'],
@@ -14,16 +11,15 @@ const defaultLinks = {
 };
 
 export default function FooterSection({ data }: { data?: any }) {
-  void data;
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const settingsRaw = useQuery(api.siteSettings.get);
+  const homeData = data?.homeData;
 
   const settings = useMemo(() => {
-    return settingsRaw?.data ?? {};
-  }, [settingsRaw]);
+    return homeData?.settings ?? {};
+  }, [homeData?.settings]);
 
   const footerLinks = settings.footer_links ?? defaultLinks;
   const brandName = settings.brand_name ?? 'AYZAL';
@@ -33,7 +29,8 @@ export default function FooterSection({ data }: { data?: any }) {
   const instagram = settings.social_links?.instagram ?? '#';
   const facebook = settings.social_links?.facebook ?? '#';
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 

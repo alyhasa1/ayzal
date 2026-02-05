@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from '@remix-run/react';
 import { useConvexAuth } from 'convex/react';
 
 export default function RequireAuth({

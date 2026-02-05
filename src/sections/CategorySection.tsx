@@ -1,10 +1,8 @@
-import { useRef, useLayoutEffect, useMemo } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useRef, useMemo } from 'react';
+import { useNavigate } from '@remix-run/react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
+import { ensureScrollTrigger } from '@/lib/gsap';
 
 const fallbackCategories = [
   {
@@ -22,21 +20,23 @@ const fallbackCategories = [
 ];
 
 export default function CategorySection({ data }: { data?: any }) {
-  void data;
   const sectionRef = useRef<HTMLElement>(null);
   const panelsRef = useRef<(HTMLDivElement | null)[]>([]);
   const labelsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const categoriesRaw = useQuery(api.categories.list);
+  const navigate = useNavigate();
+  const homeData = data?.homeData;
 
   const categories = useMemo(() => {
-    const mapped = categoriesRaw?.map((category) => ({
+    const mapped = homeData?.categories?.map((category: any) => ({
       name: category.name,
       image: category.image_url,
+      slug: category.slug,
     })) ?? [];
     return mapped.length >= 3 ? mapped.slice(0, 3) : fallbackCategories;
-  }, [categoriesRaw]);
+  }, [homeData?.categories]);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    ensureScrollTrigger();
     const section = sectionRef.current;
     if (!section) return;
 
@@ -102,7 +102,16 @@ export default function CategorySection({ data }: { data?: any }) {
               <h3 className="panel-label headline-lg text-2xl md:text-3xl lg:text-4xl mb-4 text-center">
                 {category.name}
               </h3>
-              <button className="btn-ghost">Explore</button>
+              <button
+                className="btn-ghost"
+                onClick={() => {
+                  if (category.slug) {
+                    navigate(`/category/${category.slug}`);
+                  }
+                }}
+              >
+                Explore
+              </button>
             </div>
           </div>
         ))}

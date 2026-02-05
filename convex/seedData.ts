@@ -575,6 +575,14 @@ export const seedSettings = {
   contact_email: "hello@ayzal.pk",
   contact_phone: "+92 300 1234567",
   contact_location: "Lahore, Pakistan",
+  seo: {
+    title: "Ayzal Collections | Pakistani Dresses",
+    description:
+      "Discover Ayzal Collections for pakistani dresses, buy pakistani dresses in lahore, lawn, unstitched lawn, and designer lawn pakistan. Elegant unstitched suits crafted for timeless style.",
+    keywords:
+      "pakistani dresses, buy pakistani dresses in lahore, lawn, unstitched lawn, designer lawn pakistan",
+    og_image: "/og.png",
+  },
   footer_links: {
     shop: ["New Arrivals", "Formals", "Ready-to-Wear", "Bridal", "Accessories"],
     help: ["Shipping", "Returns", "Size Guide", "FAQ", "Contact Us"],

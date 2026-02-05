@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from '@remix-run/react';
 import { Menu, Search, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 
