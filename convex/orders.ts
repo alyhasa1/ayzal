@@ -179,3 +179,53 @@ export const updateStatus = mutation({
     });
   },
 });
+
+export const adminUpdate = mutation({
+  args: {
+    id: v.id("orders"),
+    status: v.optional(v.string()),
+    note: v.optional(v.string()),
+    tracking_carrier: v.optional(v.string()),
+    tracking_number: v.optional(v.string()),
+    tracking_url: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAdmin(ctx);
+    const order = await ctx.db.get(args.id);
+    if (!order) return;
+
+    if (args.status !== undefined) {
+      assertStatus(args.status);
+    }
+
+    const update: any = { updated_at: Date.now() };
+    if (args.status !== undefined) update.status = args.status;
+    if (args.tracking_carrier !== undefined) update.tracking_carrier = args.tracking_carrier;
+    if (args.tracking_number !== undefined) update.tracking_number = args.tracking_number;
+    if (args.tracking_url !== undefined) update.tracking_url = args.tracking_url;
+
+    await ctx.db.patch(args.id, update);
+
+    const hasTrackingChange =
+      args.tracking_carrier !== undefined ||
+      args.tracking_number !== undefined ||
+      args.tracking_url !== undefined;
+
+    const statusForEvent = args.status ?? order.status;
+    const noteForEvent =
+      args.note ??
+      (hasTrackingChange
+        ? `Tracking updated${args.tracking_number ? `: ${args.tracking_number}` : ""}`
+        : undefined);
+
+    if (args.status !== undefined || args.note !== undefined || hasTrackingChange) {
+      await ctx.db.insert("order_status_events", {
+        order_id: args.id,
+        status: statusForEvent,
+        note: noteForEvent,
+        created_at: Date.now(),
+        created_by: userId,
+      });
+    }
+  },
+});

@@ -50,19 +50,53 @@ export default function AccountOrderDetail() {
           <p className="label-text text-[#6E6E6E]">Shipping</p>
           <p className="text-sm">{order.contact_phone}</p>
           <p className="text-sm">{order.shipping_address?.line1}</p>
+          {order.shipping_address?.line2 ? (
+            <p className="text-sm">{order.shipping_address?.line2}</p>
+          ) : null}
           <p className="text-sm">{order.shipping_address?.city} {order.shipping_address?.postal_code}</p>
+          {order.shipping_address?.country ? (
+            <p className="text-sm">{order.shipping_address?.country}</p>
+          ) : null}
         </div>
       </div>
+
+      {(order.tracking_number || order.tracking_url || order.tracking_carrier) && (
+        <div className="border border-[#111]/10 bg-white p-4 space-y-2">
+          <p className="label-text text-[#6E6E6E]">Tracking</p>
+          {order.tracking_carrier ? <p className="text-sm">{order.tracking_carrier}</p> : null}
+          {order.tracking_number ? (
+            <p className="text-sm">
+              Tracking #: <span className="font-medium">{order.tracking_number}</span>
+            </p>
+          ) : null}
+          {order.tracking_url ? (
+            <a
+              href={order.tracking_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs uppercase tracking-widest text-[#6E6E6E] hover:text-[#111] inline-block"
+            >
+              Track shipment
+            </a>
+          ) : null}
+        </div>
+      )}
 
       <div className="space-y-2">
         <p className="label-text text-[#6E6E6E]">Status Timeline</p>
         <div className="space-y-2">
           {order.status_events.map((event: any) => (
-            <div key={event._id} className="flex items-center justify-between text-sm border border-[#111]/10 px-3 py-2">
-              <span className="uppercase tracking-widest text-xs">{event.status}</span>
-              <span className="text-xs text-[#6E6E6E]">
-                {new Date(event.created_at).toLocaleString()}
-              </span>
+            <div
+              key={event._id}
+              className="border border-[#111]/10 px-3 py-2 text-sm flex flex-col gap-1 bg-white"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="uppercase tracking-widest text-xs">{event.status}</span>
+                <span className="text-xs text-[#6E6E6E]">
+                  {new Date(event.created_at).toLocaleString()}
+                </span>
+              </div>
+              {event.note && <div className="text-xs text-[#6E6E6E]">{event.note}</div>}
             </div>
           ))}
         </div>

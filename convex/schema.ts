@@ -104,6 +104,7 @@ export default defineSchema({
     user_id: v.id("users"),
     full_name: v.optional(v.string()),
     phone: v.optional(v.string()),
+    default_address_id: v.optional(v.id("user_addresses")),
     shipping_address: v.optional(
       v.object({
         line1: v.optional(v.string()),
@@ -117,6 +118,23 @@ export default defineSchema({
     updated_at: v.number(),
   }).index("by_user", ["user_id"]),
 
+  user_addresses: defineTable({
+    user_id: v.id("users"),
+    label: v.optional(v.string()),
+    recipient_name: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    line1: v.string(),
+    line2: v.optional(v.string()),
+    city: v.string(),
+    state: v.optional(v.string()),
+    postal_code: v.optional(v.string()),
+    country: v.string(),
+    created_at: v.number(),
+    updated_at: v.number(),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_user_updated", ["user_id", "updated_at"]),
+
   orders: defineTable({
     user_id: v.id("users"),
     status: v.string(),
@@ -125,6 +143,9 @@ export default defineSchema({
     total: v.number(),
     currency: v.string(),
     shipping_address: v.any(),
+    tracking_carrier: v.optional(v.string()),
+    tracking_number: v.optional(v.string()),
+    tracking_url: v.optional(v.string()),
     contact_email: v.string(),
     contact_phone: v.string(),
     created_at: v.number(),
