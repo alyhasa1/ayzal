@@ -132,68 +132,109 @@ export default function CheckoutPage() {
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10">
         <div className="space-y-6">
           <h1 className="font-display text-2xl">Checkout</h1>
-          <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-            <input
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              placeholder="Email"
-              className="w-full border border-[#111]/10 px-3 py-2"
-              required
-            />
-            <input
-              value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="Phone"
-              className="w-full border border-[#111]/10 px-3 py-2"
-              required
-            />
-            <input
-              value={line1}
-              onChange={(e) => setLine1(e.target.value)}
-              placeholder="Address line 1"
-              className="w-full border border-[#111]/10 px-3 py-2"
-              required
-            />
-            <input
-              value={line2}
-              onChange={(e) => setLine2(e.target.value)}
-              placeholder="Address line 2"
-              className="w-full border border-[#111]/10 px-3 py-2"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="City"
-                className="w-full border border-[#111]/10 px-3 py-2"
-                required
-              />
-              <input
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                placeholder="State"
-                className="w-full border border-[#111]/10 px-3 py-2"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                placeholder="Postal code"
-                className="w-full border border-[#111]/10 px-3 py-2"
-                required
-              />
-              <input
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                placeholder="Country"
-                className="w-full border border-[#111]/10 px-3 py-2"
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-5 text-sm">
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">Contact Information</p>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                  Phone <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="label-text text-[#6E6E6E]">Payment Method</p>
+            <div className="space-y-3 border-t border-[#111]/10 pt-5">
+              <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">Shipping Address</p>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                  Address Line 1 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  value={line1}
+                  onChange={(e) => setLine1(e.target.value)}
+                  className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                  Address Line 2
+                </label>
+                <input
+                  value={line2}
+                  onChange={(e) => setLine2(e.target.value)}
+                  className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                    State / Province
+                  </label>
+                  <input
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                    Postal Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#6E6E6E] mb-1.5">
+                    Country <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full border border-[#111]/10 px-3 py-2 focus:outline-none focus:border-[#D4A05A] transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t border-[#111]/10 pt-5">
+              <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">Payment Method</p>
               {allowedMethods.length === 0 ? (
                 <p className="text-xs text-red-500">No valid payment methods available.</p>
               ) : (

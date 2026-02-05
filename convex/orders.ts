@@ -145,6 +145,16 @@ export const getById = query({
   },
 });
 
+export const adminGetById = query({
+  args: { id: v.id("orders") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const order = await ctx.db.get(args.id);
+    if (!order) return null;
+    return await attachOrderDetails(ctx, order);
+  },
+});
+
 export const listAll = query({
   handler: async (ctx) => {
     await requireAdmin(ctx);

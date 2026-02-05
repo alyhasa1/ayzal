@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import FormField, { fieldInputClass, fieldTextareaClass } from '@/components/admin/FormField';
+import { useToast } from '@/components/admin/Toast';
 
 export default function AdminSettings() {
   const settingsRaw = useQuery(api.siteSettings.get);
   const upsertSettings = useMutation(api.siteSettings.upsert);
+  const { toast } = useToast();
 
   const [brandName, setBrandName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -16,7 +19,7 @@ export default function AdminSettings() {
   const [seoDescription, setSeoDescription] = useState('');
   const [seoKeywords, setSeoKeywords] = useState('');
   const [seoOgImage, setSeoOgImage] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const data = settingsRaw?.data ?? {};
@@ -34,7 +37,7 @@ export default function AdminSettings() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
+    setSaving(true);
     try {
       const footer_links = JSON.parse(footerLinks || '{}');
       const social_links = JSON.parse(socialLinks || '{}');
@@ -54,82 +57,74 @@ export default function AdminSettings() {
           },
         },
       });
+      toast('Settings saved');
     } catch (err: any) {
-      setError(err?.message ?? 'Invalid JSON');
+      toast(err?.message ?? 'Invalid JSON — check footer/social fields', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <div className="max-w-3xl space-y-6">
       <h2 className="font-display text-xl">Site Settings</h2>
-      <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-        <input
-          value={brandName}
-          onChange={(e) => setBrandName(e.target.value)}
-          placeholder="Brand name"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <input
-          value={contactEmail}
-          onChange={(e) => setContactEmail(e.target.value)}
-          placeholder="Contact email"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <input
-          value={contactPhone}
-          onChange={(e) => setContactPhone(e.target.value)}
-          placeholder="Contact phone"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <input
-          value={contactLocation}
-          onChange={(e) => setContactLocation(e.target.value)}
-          placeholder="Contact location"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <label className="label-text text-[#6E6E6E]">SEO title</label>
-        <input
-          value={seoTitle}
-          onChange={(e) => setSeoTitle(e.target.value)}
-          placeholder="SEO title"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <label className="label-text text-[#6E6E6E]">SEO description</label>
-        <textarea
-          value={seoDescription}
-          onChange={(e) => setSeoDescription(e.target.value)}
-          placeholder="SEO description"
-          className="w-full border border-[#111]/10 px-3 py-2 min-h-24"
-        />
-        <label className="label-text text-[#6E6E6E]">SEO keywords</label>
-        <input
-          value={seoKeywords}
-          onChange={(e) => setSeoKeywords(e.target.value)}
-          placeholder="SEO keywords"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <label className="label-text text-[#6E6E6E]">SEO OG image</label>
-        <input
-          value={seoOgImage}
-          onChange={(e) => setSeoOgImage(e.target.value)}
-          placeholder="/og.png"
-          className="w-full border border-[#111]/10 px-3 py-2"
-        />
-        <label className="label-text text-[#6E6E6E]">Footer links JSON</label>
-        <textarea
-          value={footerLinks}
-          onChange={(e) => setFooterLinks(e.target.value)}
-          className="w-full border border-[#111]/10 px-3 py-2 min-h-32 font-mono text-xs"
-        />
-        <label className="label-text text-[#6E6E6E]">Social links JSON</label>
-        <textarea
-          value={socialLinks}
-          onChange={(e) => setSocialLinks(e.target.value)}
-          className="w-full border border-[#111]/10 px-3 py-2 min-h-24 font-mono text-xs"
-        />
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        <button className="btn-primary" type="submit">
-          Save Settings
+      <form onSubmit={handleSubmit} className="space-y-5 text-sm">
+        <div className="bg-white border border-[#111]/10 p-5 space-y-4">
+          <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">Brand & Contact</p>
+          <FormField label="Brand Name">
+            <input value={brandName} onChange={(e) => setBrandName(e.target.value)} className={fieldInputClass} />
+          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <FormField label="Contact Email">
+              <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className={fieldInputClass} />
+            </FormField>
+            <FormField label="Contact Phone">
+              <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className={fieldInputClass} />
+            </FormField>
+          </div>
+          <FormField label="Contact Location">
+            <input value={contactLocation} onChange={(e) => setContactLocation(e.target.value)} className={fieldInputClass} />
+          </FormField>
+        </div>
+
+        <div className="bg-white border border-[#111]/10 p-5 space-y-4">
+          <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">SEO Defaults</p>
+          <FormField label="Default Page Title">
+            <input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className={fieldInputClass} />
+          </FormField>
+          <FormField label="Default Meta Description">
+            <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className={`${fieldTextareaClass} min-h-20`} />
+          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <FormField label="Meta Keywords" hint="Comma-separated">
+              <input value={seoKeywords} onChange={(e) => setSeoKeywords(e.target.value)} className={fieldInputClass} />
+            </FormField>
+            <FormField label="OG Image Path" hint="e.g. /og.png">
+              <input value={seoOgImage} onChange={(e) => setSeoOgImage(e.target.value)} className={fieldInputClass} />
+            </FormField>
+          </div>
+        </div>
+
+        <div className="bg-white border border-[#111]/10 p-5 space-y-4">
+          <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">Footer & Social</p>
+          <FormField label="Footer Links" hint="JSON object with shop, help, company arrays">
+            <textarea
+              value={footerLinks}
+              onChange={(e) => setFooterLinks(e.target.value)}
+              className={`${fieldTextareaClass} min-h-32 font-mono text-xs`}
+            />
+          </FormField>
+          <FormField label="Social Links" hint="JSON object e.g. { instagram: '', facebook: '' }">
+            <textarea
+              value={socialLinks}
+              onChange={(e) => setSocialLinks(e.target.value)}
+              className={`${fieldTextareaClass} min-h-24 font-mono text-xs`}
+            />
+          </FormField>
+        </div>
+
+        <button className="btn-primary" type="submit" disabled={saving}>
+          {saving ? 'Saving...' : 'Save Settings'}
         </button>
       </form>
     </div>

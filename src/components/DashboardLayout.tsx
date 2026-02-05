@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import { NavLink } from '@remix-run/react';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useAuthActions } from '@convex-dev/auth/react';
+import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
   label: string;
   href: string;
+  icon?: LucideIcon;
 }
 
 interface DashboardLayoutProps {
@@ -69,13 +71,14 @@ export default function DashboardLayout({ title, navItems, children }: Dashboard
                     to={item.href}
                     onClick={() => setIsNavOpen(false)}
                     className={({ isActive }) =>
-                      `block px-4 py-2 text-sm uppercase tracking-wider transition-colors ${
+                      `flex items-center gap-2.5 px-4 py-2 text-sm uppercase tracking-wider transition-colors ${
                         isActive
                           ? 'bg-[#111] text-white'
                           : 'text-[#6E6E6E] hover:text-[#111]'
                       }`
                     }
                   >
+                    {item.icon && <item.icon className="w-4 h-4" />}
                     {item.label}
                   </NavLink>
                 ))}
@@ -105,11 +108,12 @@ export default function DashboardLayout({ title, navItems, children }: Dashboard
                 key={item.href}
                 to={item.href}
                 className={({ isActive }) =>
-                  `block px-4 py-2 text-sm uppercase tracking-wider transition-colors ${
+                  `flex items-center gap-2.5 px-4 py-2 text-sm uppercase tracking-wider transition-colors ${
                     isActive ? 'bg-[#111] text-white' : 'text-[#6E6E6E] hover:text-[#111]'
                   }`
                 }
               >
+                {item.icon && <item.icon className="w-4 h-4" />}
                 {item.label}
               </NavLink>
             ))}
