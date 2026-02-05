@@ -1,7 +1,7 @@
 import { useNavigate } from '@remix-run/react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { formatPrice } from '@/lib/format';
+import { formatOrderNumber, formatPrice } from '@/lib/format';
 
 export default function AccountOrders() {
   const orders = useQuery(api.orders.listForUser) ?? [];
@@ -17,7 +17,7 @@ export default function AccountOrders() {
           {orders.map((order) => (
             <div key={order._id} className="p-4 bg-white border border-[#111]/10 flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium">Order {order._id}</p>
+                <p className="text-sm font-medium">Order #{formatOrderNumber(order)}</p>
                 <p className="text-xs text-[#6E6E6E]">{order.status}</p>
               </div>
               <div className="text-right">

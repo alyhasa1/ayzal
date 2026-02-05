@@ -2,7 +2,7 @@ import { useParams, useNavigate } from '@remix-run/react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { formatPrice } from '@/lib/format';
+import { formatOrderNumber, formatPrice } from '@/lib/format';
 
 export default function AccountOrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +28,7 @@ export default function AccountOrderDetail() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-xl">Order {order._id}</h2>
+          <h2 className="font-display text-xl">Order #{formatOrderNumber(order)}</h2>
           <p className="text-sm text-[#6E6E6E]">Status: {order.status}</p>
         </div>
         <button className="text-xs uppercase tracking-widest" onClick={() => navigate('/account/orders')}>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { formatPrice } from '@/lib/format';
+import { formatOrderNumber, formatPrice } from '@/lib/format';
 
 const statusOptions = [
   'pending',
@@ -48,7 +48,7 @@ export default function AdminOrders() {
         <div key={order._id} className="p-4 bg-white border border-[#111]/10 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium">Order {order._id}</p>
+              <p className="text-sm font-medium">Order #{formatOrderNumber(order)}</p>
               <p className="text-xs text-[#6E6E6E]">{order.contact_email}</p>
             </div>
             <div className="text-right">
