@@ -8,15 +8,15 @@ import { formatPrice } from '@/lib/format';
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
-  const paymentMethods = useQuery(api.paymentMethods.list) ?? [];
+  const paymentMethodsQuery = useQuery(api.paymentMethods.list);
   const user = useQuery(api.users.me);
   const profile = useQuery(api.userProfiles.get);
   const upsertProfile = useMutation(api.userProfiles.upsert);
   const createOrder = useMutation(api.orders.create);
 
   const activeMethods = useMemo(
-    () => paymentMethods.filter((method) => method.active),
-    [paymentMethods]
+    () => (paymentMethodsQuery ?? []).filter((method) => method.active),
+    [paymentMethodsQuery]
   );
 
   const allowedMethods = useMemo(() => {
@@ -43,19 +43,6 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#F6F2EE] flex items-center justify-center px-6">
-        <div className="text-center space-y-4">
-          <p className="text-sm text-[#6E6E6E]">Your cart is empty.</p>
-          <button className="btn-primary" onClick={() => navigate('/')}>
-            Continue Shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   useEffect(() => {
     if (profile) {
       setContactPhone(profile.phone ?? '');
@@ -79,6 +66,19 @@ export default function CheckoutPage() {
       setSelectedMethod(allowedMethods[0]._id);
     }
   }, [allowedMethods, selectedMethod]);
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F6F2EE] flex items-center justify-center px-6">
+        <div className="text-center space-y-4">
+          <p className="text-sm text-[#6E6E6E]">Your cart is empty.</p>
+          <button className="btn-primary" onClick={() => navigate('/')}>
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

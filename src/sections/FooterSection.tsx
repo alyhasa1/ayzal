@@ -4,11 +4,78 @@ import { Mail, Phone, MapPin, Instagram, Facebook, ArrowRight, Check } from 'luc
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
 import { ensureScrollTrigger } from '@/lib/gsap';
 
-const defaultLinks = {
-  shop: ['New Arrivals', 'Formals', 'Ready-to-Wear', 'Bridal', 'Accessories'],
-  help: ['Shipping', 'Returns', 'Size Guide', 'FAQ', 'Contact Us'],
-  company: ['About Us', 'Careers', 'Press', 'Sustainability'],
+type FooterLinkItem = string | { label?: string; href?: string };
+
+type FooterLinks = {
+  shop?: FooterLinkItem[];
+  help?: FooterLinkItem[];
+  company?: FooterLinkItem[];
 };
+
+const labelFallbackHref: Record<string, string> = {
+  'new arrivals': '/search?sort=newest',
+  formals: '/category/formals',
+  'ready-to-wear': '/category/ready-to-wear',
+  bridal: '/category/bridal',
+  accessories: '/search?q=accessories',
+  shipping: '/pages/shipping',
+  returns: '/pages/returns-policy',
+  'size guide': '/pages/size-guide',
+  faq: '/pages/faq',
+  'contact us': '/support',
+  'about us': '/pages/about-us',
+  careers: '/pages/careers',
+  press: '/blog',
+  sustainability: '/pages/sustainability',
+};
+
+const defaultLinks: Required<FooterLinks> = {
+  shop: [
+    { label: 'New Arrivals', href: '/search?sort=newest' },
+    { label: 'Formals', href: '/category/formals' },
+    { label: 'Ready-to-Wear', href: '/category/ready-to-wear' },
+    { label: 'Bridal', href: '/category/bridal' },
+    { label: 'Accessories', href: '/search?q=accessories' },
+  ],
+  help: [
+    { label: 'Shipping', href: '/pages/shipping' },
+    { label: 'Returns', href: '/pages/returns-policy' },
+    { label: 'Size Guide', href: '/pages/size-guide' },
+    { label: 'FAQ', href: '/pages/faq' },
+    { label: 'Contact Us', href: '/support' },
+  ],
+  company: [
+    { label: 'About Us', href: '/pages/about-us' },
+    { label: 'Careers', href: '/pages/careers' },
+    { label: 'Press', href: '/blog' },
+    { label: 'Sustainability', href: '/pages/sustainability' },
+  ],
+};
+
+function normalizeFooterLink(link: FooterLinkItem) {
+  if (typeof link === 'string') {
+    const label = link.trim();
+    const href = labelFallbackHref[label.toLowerCase()] ?? '#';
+    return { label, href };
+  }
+
+  const label = typeof link.label === 'string' ? link.label.trim() : '';
+  const fallbackHref = labelFallbackHref[label.toLowerCase()] ?? '#';
+  const href = typeof link.href === 'string' && link.href.trim() ? link.href.trim() : fallbackHref;
+
+  return {
+    label: label || href,
+    href,
+  };
+}
+
+function resolveLinks(value: FooterLinkItem[] | undefined, fallback: FooterLinkItem[]) {
+  return (value ?? fallback).map(normalizeFooterLink).filter((item) => item.label);
+}
+
+function isExternalHref(href: string) {
+  return /^https?:\/\//i.test(href);
+}
 
 export default function FooterSection({ data }: { data?: any }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -21,7 +88,11 @@ export default function FooterSection({ data }: { data?: any }) {
     return homeData?.settings ?? {};
   }, [homeData?.settings]);
 
-  const footerLinks = settings.footer_links ?? defaultLinks;
+  const footerLinks = (settings.footer_links ?? defaultLinks) as FooterLinks;
+  const shopLinks = resolveLinks(footerLinks.shop, defaultLinks.shop);
+  const helpLinks = resolveLinks(footerLinks.help, defaultLinks.help);
+  const companyLinks = resolveLinks(footerLinks.company, defaultLinks.company);
+
   const brandName = settings.brand_name ?? 'AYZAL';
   const contactEmail = settings.contact_email ?? 'hello@ayzal.pk';
   const contactPhone = settings.contact_phone ?? '+92 300 1234567';
@@ -70,9 +141,7 @@ export default function FooterSection({ data }: { data?: any }) {
       className="relative bg-[#0B0F17] text-[#F6F2EE] py-16 lg:py-20"
     >
       <div ref={contentRef} className="max-w-7xl mx-auto px-6 lg:px-12">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
-          {/* Contact Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-16">
           <div>
             <h3 className="font-display text-lg font-semibold tracking-wider uppercase mb-6">
               Get in Touch
@@ -99,41 +168,54 @@ export default function FooterSection({ data }: { data?: any }) {
             </div>
           </div>
 
-          {/* Shop Links */}
           <div>
             <h3 className="label-text text-[#F6F2EE]/60 mb-6">Shop</h3>
             <ul className="space-y-3">
-              {footerLinks.shop?.map((link: string) => (
-                <li key={link}>
+              {shopLinks.map((link, index) => (
+                <li key={`${link.label}-${index}`}>
                   <a
-                    href="#"
+                    href={link.href}
                     className="text-sm text-[#F6F2EE]/80 hover:text-[#D4A05A] transition-colors"
                   >
-                    {link}
+                    {link.label}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Help Links */}
           <div>
             <h3 className="label-text text-[#F6F2EE]/60 mb-6">Help</h3>
             <ul className="space-y-3">
-              {footerLinks.help?.map((link: string) => (
-                <li key={link}>
+              {helpLinks.map((link, index) => (
+                <li key={`${link.label}-${index}`}>
                   <a
-                    href="#"
+                    href={link.href}
                     className="text-sm text-[#F6F2EE]/80 hover:text-[#D4A05A] transition-colors"
                   >
-                    {link}
+                    {link.label}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Newsletter */}
+          <div>
+            <h3 className="label-text text-[#F6F2EE]/60 mb-6">Company</h3>
+            <ul className="space-y-3">
+              {companyLinks.map((link, index) => (
+                <li key={`${link.label}-${index}`}>
+                  <a
+                    href={link.href}
+                    className="text-sm text-[#F6F2EE]/80 hover:text-[#D4A05A] transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div>
             <h3 className="font-display text-lg font-semibold tracking-wider uppercase mb-6">
               Join the List
@@ -167,22 +249,21 @@ export default function FooterSection({ data }: { data?: any }) {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Logo */}
           <a
-            href="#"
+            href="/"
             className="font-display text-xl font-bold tracking-[0.25em] text-[#F6F2EE]"
           >
             {brandName}
           </a>
 
-          {/* Social Links */}
           <div className="flex items-center gap-6">
             <a
               href={instagram}
               className="text-[#F6F2EE]/60 hover:text-[#D4A05A] transition-colors"
               aria-label="Instagram"
+              target={isExternalHref(instagram) ? '_blank' : undefined}
+              rel={isExternalHref(instagram) ? 'noreferrer' : undefined}
             >
               <Instagram className="w-5 h-5" strokeWidth={1.5} />
             </a>
@@ -190,14 +271,15 @@ export default function FooterSection({ data }: { data?: any }) {
               href={facebook}
               className="text-[#F6F2EE]/60 hover:text-[#D4A05A] transition-colors"
               aria-label="Facebook"
+              target={isExternalHref(facebook) ? '_blank' : undefined}
+              rel={isExternalHref(facebook) ? 'noreferrer' : undefined}
             >
               <Facebook className="w-5 h-5" strokeWidth={1.5} />
             </a>
           </div>
 
-          {/* Copyright */}
           <p className="text-xs text-[#F6F2EE]/40">
-            ? 2026 {brandName} Collections. All rights reserved.
+            (c) 2026 {brandName} Collections. All rights reserved.
           </p>
         </div>
       </div>

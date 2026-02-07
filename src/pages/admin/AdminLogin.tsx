@@ -2,24 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from '@remix-run/react';
 import { useConvexAuth } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { formatAuthErrorMessage } from '@/lib/authErrors';
 
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
-}
-
-function formatAuthError(err: unknown) {
-  const message = (err as { message?: string } | null)?.message ?? '';
-  if (
-    message.includes('InvalidAccountId') ||
-    message.includes('InvalidSecret') ||
-    message.includes('Invalid credentials')
-  ) {
-    return 'Invalid email or password.';
-  }
-  if (message.includes('TooManyFailedAttempts')) {
-    return 'Too many failed attempts. Please try again later.';
-  }
-  return message || 'Unable to sign in';
 }
 
 export default function AdminLogin() {
@@ -50,7 +36,7 @@ export default function AdminLogin() {
         password,
       });
     } catch (err: unknown) {
-      setError(formatAuthError(err));
+      setError(formatAuthErrorMessage(err, { mode, audience: 'admin' }));
     } finally {
       setLoading(false);
     }

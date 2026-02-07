@@ -584,14 +584,108 @@ export const seedSettings = {
     og_image: "/og.png",
   },
   footer_links: {
-    shop: ["New Arrivals", "Formals", "Ready-to-Wear", "Bridal", "Accessories"],
-    help: ["Shipping", "Returns", "Size Guide", "FAQ", "Contact Us"],
-    company: ["About Us", "Careers", "Press", "Sustainability"],
+    shop: [
+      { label: "New Arrivals", href: "/search?sort=newest" },
+      { label: "Formals", href: "/category/formals" },
+      { label: "Ready-to-Wear", href: "/category/ready-to-wear" },
+      { label: "Bridal", href: "/category/bridal" },
+      { label: "Accessories", href: "/search?q=accessories" },
+    ],
+    help: [
+      { label: "Shipping", href: "/pages/shipping" },
+      { label: "Returns", href: "/pages/returns-policy" },
+      { label: "Size Guide", href: "/pages/size-guide" },
+      { label: "FAQ", href: "/pages/faq" },
+      { label: "Contact Us", href: "/support" },
+    ],
+    company: [
+      { label: "About Us", href: "/pages/about-us" },
+      { label: "Careers", href: "/pages/careers" },
+      { label: "Press", href: "/blog" },
+      { label: "Sustainability", href: "/pages/sustainability" },
+    ],
   },
   social_links: {
     instagram: "#",
     facebook: "#",
   },
+  content_pages: [
+    {
+      slug: "about-us",
+      title: "About Ayzal Collections",
+      meta_title: "About Ayzal Collections",
+      meta_description:
+        "Learn about Ayzal Collections, our quality process, and customer-first design values.",
+      body:
+        "Ayzal Collections creates Pakistani fashion that balances craftsmanship, comfort, and everyday elegance.\n\nEvery product is reviewed for fit, finish, and fabric quality before launch.",
+      updated_at: Date.now(),
+      published: true,
+    },
+    {
+      slug: "returns-policy",
+      title: "Returns and Exchange Policy",
+      meta_title: "Returns and Exchange Policy | Ayzal Collections",
+      meta_description:
+        "Read return, exchange, and refund eligibility details for Ayzal Collections orders.",
+      body:
+        "Returns can be requested within 7 days of delivery for eligible, unused items.\n\nFinal sale and customized products are excluded unless damaged or incorrect.",
+      updated_at: Date.now(),
+      published: true,
+    },
+    {
+      slug: "size-guide",
+      title: "Size Guide",
+      meta_title: "Size Guide | Ayzal Collections",
+      meta_description: "Use the Ayzal size guide to choose the right fit with confidence.",
+      body:
+        "Use your bust, waist, and hip measurements before checkout.\n\nIf you are between sizes, choose the larger size for comfort tailoring.",
+      updated_at: Date.now(),
+      published: true,
+    },
+    {
+      slug: "faq",
+      title: "Frequently Asked Questions",
+      meta_title: "FAQ | Ayzal Collections",
+      meta_description:
+        "Answers to common questions about shipping, delivery timelines, returns, and payment methods.",
+      body:
+        "Orders are usually processed within 24 hours on working days.\n\nFor urgent support, contact us with your order number through the support page.",
+      updated_at: Date.now(),
+      published: true,
+    },
+  ],
+  blog_posts: [
+    {
+      slug: "how-to-style-unstitched-lawn-in-pakistan",
+      title: "How to Style Unstitched Lawn in Pakistan",
+      excerpt:
+        "Simple styling rules to improve fit, comfort, and occasion-ready looks for summer lawn.",
+      content:
+        "Start by selecting cuts that match your daily routine and weather comfort.\n\nBalance embroidery-heavy shirts with simpler trousers and lightweight dupattas for breathable styling.",
+      author: "Ayzal Editorial",
+      tags: ["lawn", "styling", "pakistan"],
+      cover_image:
+        "https://empress-clothing.com/cdn/shop/collections/CS07-Crimson-Summer_in_the_Meadows_-_D1A-2.jpg",
+      published_at: Date.now(),
+      updated_at: Date.now(),
+      published: true,
+    },
+    {
+      slug: "bridal-fabric-checklist-before-you-buy",
+      title: "Bridal Fabric Checklist Before You Buy",
+      excerpt:
+        "A practical checklist to evaluate bridal fabrics, embroidery density, and durability before purchase.",
+      content:
+        "Inspect fabric fall and lining compatibility before finalizing bridal outfits.\n\nFor heavy embellishments, confirm stitch reinforcement and cleaning instructions in advance.",
+      author: "Ayzal Editorial",
+      tags: ["bridal", "fabric", "shopping-guide"],
+      cover_image: "https://www.libas.in/cdn/shop/files/27190.jpg?v=1739181064",
+      published_at: Date.now(),
+      updated_at: Date.now(),
+      published: true,
+    },
+  ],
+  redirect_rules: [{ from: "/size-chart", to: "/pages/size-guide", status: 301 }],
 };
 
 export const seedPaymentMethods = [

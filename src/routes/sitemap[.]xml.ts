@@ -22,9 +22,12 @@ type SitemapUrl = {
 
 export const loader = async ({ context }: LoaderFunctionArgs) => {
   const convex = createConvexClient(context);
-  const [products, categories] = await Promise.all([
+  const [products, categories, collections, blogPosts, contentPages] = await Promise.all([
     convex.query(api.products.listSeo),
     convex.query(api.categories.listSeo),
+    convex.query(api.collections.listPublic),
+    convex.query(api.content.listSeoPosts),
+    convex.query(api.content.listSeoPages),
   ]);
 
   const urls: SitemapUrl[] = [
@@ -40,6 +43,12 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
       changefreq: "weekly",
       priority: "0.7",
     })),
+    ...(collections ?? []).map((collection) => ({
+      loc: `${CANONICAL_BASE}/collections/${collection.slug}`,
+      lastmod: formatDate(collection.updated_at),
+      changefreq: "weekly",
+      priority: "0.7",
+    })),
     ...(products ?? []).map((product) => ({
       loc: `${CANONICAL_BASE}/product/${product.slug}`,
       lastmod: formatDate(product.updated_at),
@@ -48,6 +57,23 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
       image: product.primary_image_url
         ? { loc: product.primary_image_url, caption: product.name }
         : undefined,
+    })),
+    {
+      loc: `${CANONICAL_BASE}/blog`,
+      changefreq: "weekly",
+      priority: "0.6",
+    },
+    ...(blogPosts ?? []).map((post) => ({
+      loc: `${CANONICAL_BASE}/blog/${post.slug}`,
+      lastmod: formatDate(post.updated_at),
+      changefreq: "weekly",
+      priority: "0.6",
+    })),
+    ...(contentPages ?? []).map((page) => ({
+      loc: `${CANONICAL_BASE}/pages/${page.slug}`,
+      lastmod: formatDate(page.updated_at),
+      changefreq: "monthly",
+      priority: "0.5",
     })),
   ];
 
@@ -61,7 +87,7 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
         const imageTag = url.image
           ? `\n    <image:image>\n      <image:loc>${escapeXml(url.image.loc)}</image:loc>\n      <image:caption>${escapeXml(url.image.caption)}</image:caption>\n    </image:image>`
           : "";
-        return `  <url>\n    <loc>${url.loc}</loc>${lastmod}\n    <changefreq>${url.changefreq}</changefreq>\n    <priority>${url.priority}</priority>${imageTag}\n  </url>`;
+        return `  <url>\n    <loc>${escapeXml(url.loc)}</loc>${lastmod}\n    <changefreq>${url.changefreq}</changefreq>\n    <priority>${url.priority}</priority>${imageTag}\n  </url>`;
       })
       .join("\n") +
     "\n</urlset>";
@@ -72,4 +98,3 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
     },
   });
 };
-

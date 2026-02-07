@@ -1,8 +1,6 @@
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-
 const CANONICAL_BASE = "https://ayzalcollections.com";
 
-export const loader = async (_args: LoaderFunctionArgs) => {
+export const loader = async () => {
   const body = [
     "User-agent: *",
     "Disallow: /admin",
@@ -18,4 +16,3 @@ export const loader = async (_args: LoaderFunctionArgs) => {
     },
   });
 };
-

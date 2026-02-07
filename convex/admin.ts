@@ -8,12 +8,18 @@ export const isAdmin = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return false;
     const user = await ctx.db.get(userId);
-    const email = user?.email;
+    const email = user?.email?.trim();
     if (!email) return false;
-    const admin = await ctx.db
+    let admin = await ctx.db
       .query("admin_users")
       .withIndex("by_email", (q) => q.eq("email", email))
       .unique();
+    if (!admin && email.toLowerCase() !== email) {
+      admin = await ctx.db
+        .query("admin_users")
+        .withIndex("by_email", (q) => q.eq("email", email.toLowerCase()))
+        .unique();
+    }
     return !!admin;
   },
 });

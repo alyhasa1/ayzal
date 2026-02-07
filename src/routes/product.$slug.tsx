@@ -4,6 +4,8 @@ import { useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
+import { dedupeProductsById } from "@/lib/commerce";
+import ClientConvexProvider from "@/components/ClientConvexProvider";
 import ProductPage from "@/pages/ProductPage";
 
 const CANONICAL_BASE = "https://ayzalcollections.com";
@@ -27,12 +29,94 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     return redirect(`/product/${canonicalSlug}`, 301);
   }
 
-  const relatedRaw = await convex.query(api.products.listRelated, {
-    productId: result.product._id,
-  });
-  const relatedProducts = (relatedRaw ?? []).map(mapProduct);
+  const [relatedRaw, bestSellerRaw, topRatedRaw, reviewsRaw, recommendationRaw] =
+    await Promise.all([
+    convex.query(api.products.listRelated, {
+      productId: result.product._id,
+    }),
+    convex.query(api.products.search, {
+      sort: "best-selling",
+      limit: 10,
+    }),
+    convex.query(api.products.search, {
+      sort: "top-rated",
+      limit: 10,
+    }),
+    convex.query(api.reviews.listForProduct, {
+      product_id: result.product._id,
+    }),
+    convex.query(api.products.recommendationBundle, {
+      product_id: result.product._id,
+      limit: 10,
+    }),
+  ]);
 
-  return json({ product, relatedProducts });
+  const mapRows = (rows: any[]) => rows.map(mapProduct);
+  const relatedProducts = dedupeProductsById(mapRows(relatedRaw ?? []), {
+    excludeIds: [product.id],
+    limit: 8,
+  });
+  const bestSellerProducts = dedupeProductsById(mapRows(bestSellerRaw?.products ?? []), {
+    excludeIds: [product.id],
+    limit: 8,
+  });
+  const topRatedProducts = dedupeProductsById(mapRows(topRatedRaw?.products ?? []), {
+    excludeIds: [product.id],
+    limit: 8,
+  });
+  const frequentlyBoughtTogether = dedupeProductsById(
+    mapRows(recommendationRaw?.frequently_bought_together ?? []),
+    {
+      excludeIds: [product.id],
+      limit: 8,
+    }
+  );
+  const completeTheLook = dedupeProductsById(
+    mapRows(recommendationRaw?.complete_the_look ?? []),
+    {
+      excludeIds: [product.id],
+      limit: 8,
+    }
+  );
+  const tagMatchProducts = dedupeProductsById(mapRows(recommendationRaw?.tag_matches ?? []), {
+    excludeIds: [product.id],
+    limit: 8,
+  });
+  const reviews = (reviewsRaw ?? []).map((review) => ({
+    id: String(review._id),
+    rating: review.rating,
+    title: review.title,
+    body: review.body,
+    guestName: review.guest_name,
+    verifiedPurchase: review.verified_purchase,
+    createdAt: review.created_at,
+    helpfulCount: review.helpful_count,
+  }));
+  const reviewCount = reviews.length;
+  const averageRating =
+    reviewCount > 0
+      ? Number(
+          (
+            reviews.reduce((sum, review) => sum + review.rating, 0) /
+            reviewCount
+          ).toFixed(1)
+        )
+      : 0;
+
+  return json({
+    product,
+    relatedProducts,
+    bestSellerProducts,
+    topRatedProducts,
+    frequentlyBoughtTogether,
+    completeTheLook,
+    tagMatchProducts,
+    reviews,
+    reviewStats: {
+      count: reviewCount,
+      average: averageRating,
+    },
+  });
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -69,7 +153,17 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export default function ProductRoute() {
-  const { product, relatedProducts } = useLoaderData<typeof loader>();
+  const {
+    product,
+    relatedProducts,
+    bestSellerProducts,
+    topRatedProducts,
+    frequentlyBoughtTogether,
+    completeTheLook,
+    tagMatchProducts,
+    reviews,
+    reviewStats,
+  } = useLoaderData<typeof loader>();
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -140,7 +234,19 @@ export default function ProductRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
-      <ProductPage product={product} relatedProducts={relatedProducts} />
+      <ClientConvexProvider fallback={<div className="min-h-screen bg-[#F6F2EE]" />}>
+        <ProductPage
+          product={product}
+          relatedProducts={relatedProducts}
+          bestSellerProducts={bestSellerProducts}
+          topRatedProducts={topRatedProducts}
+          frequentlyBoughtTogether={frequentlyBoughtTogether}
+          completeTheLook={completeTheLook}
+          tagMatchProducts={tagMatchProducts}
+          reviews={reviews}
+          reviewStats={reviewStats}
+        />
+      </ClientConvexProvider>
     </>
   );
 }

@@ -4,9 +4,13 @@ export const formatPrice = (price: number): string => {
 
 export const formatOrderNumber = (order: {
   _id: string;
+  order_number?: string;
   created_at?: number;
   _creationTime?: number;
 }): string => {
+  if (order.order_number) {
+    return order.order_number;
+  }
   const timestamp = order.created_at ?? order._creationTime ?? Date.now();
   const date = new Date(timestamp);
   const yy = String(date.getFullYear()).slice(-2);

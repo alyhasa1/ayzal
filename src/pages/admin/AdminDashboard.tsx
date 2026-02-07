@@ -40,11 +40,15 @@ function formatDate(ts: number) {
 }
 
 export default function AdminDashboard() {
-  const products = useQuery(api.products.list) ?? [];
+  const productsQuery = useQuery(api.products.list);
+  const products = productsQuery ?? [];
   const categories = useQuery(api.categories.list) ?? [];
-  const orders = useQuery(api.orders.listAll) ?? [];
+  const ordersQuery = useQuery(api.orders.listAll);
+  const orders = ordersQuery ?? [];
 
   const stats = useMemo(() => {
+    const productRows = productsQuery ?? [];
+    const orderRows = ordersQuery ?? [];
     const now = Date.now();
     const dayMs = 86400000;
     const today = now - dayMs;
@@ -57,7 +61,7 @@ export default function AdminDashboard() {
     let revenueAll = 0;
     const statusCounts: Record<string, number> = {};
 
-    for (const o of orders) {
+    for (const o of orderRows) {
       revenueAll += o.total ?? 0;
       if (o.created_at >= today) revenueToday += o.total ?? 0;
       if (o.created_at >= week) revenueWeek += o.total ?? 0;
@@ -65,8 +69,8 @@ export default function AdminDashboard() {
       statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1;
     }
 
-    const outOfStock = products.filter((p: any) => p.in_stock === false);
-    const recentOrders = [...orders]
+    const outOfStock = productRows.filter((p: any) => p.in_stock === false);
+    const recentOrders = [...orderRows]
       .sort((a: any, b: any) => b.created_at - a.created_at)
       .slice(0, 5);
 
@@ -79,7 +83,7 @@ export default function AdminDashboard() {
       outOfStock,
       recentOrders,
     };
-  }, [orders, products]);
+  }, [ordersQuery, productsQuery]);
 
   return (
     <div className="space-y-6">

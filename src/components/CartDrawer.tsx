@@ -2,10 +2,12 @@ import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { useNavigate } from '@remix-run/react';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/format';
+import { getFreeShippingState } from '@/lib/commerce';
 
 export default function CartDrawer() {
   const { items, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
+  const freeShippingState = getFreeShippingState(totalPrice, 15000);
 
   return (
     <>
@@ -31,6 +33,23 @@ export default function CartDrawer() {
               <X className="w-5 h-5" strokeWidth={1.5} />
             </button>
           </div>
+          {items.length > 0 ? (
+            <div className="px-6 pt-4">
+              <div className="rounded-xl border border-[#111]/10 bg-white px-3 py-2.5">
+                <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">
+                  {freeShippingState.unlocked
+                    ? 'Free shipping unlocked for this order'
+                    : `Add ${formatPrice(freeShippingState.remaining)} for free shipping`}
+                </p>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#111]/10">
+                  <div
+                    className="h-full rounded-full bg-[#D4A05A] transition-all duration-500"
+                    style={{ width: `${freeShippingState.progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-6">
@@ -38,7 +57,7 @@ export default function CartDrawer() {
               <div className="h-full flex flex-col items-center justify-center text-center">
                 <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" strokeWidth={1} />
                 <p className="font-display text-lg text-[#111] mb-2">Your bag is empty</p>
-                <p className="text-sm text-[#6E6E6E]">Add items to get started</p>
+                <p className="text-sm text-[#6E6E6E]">Add items now and checkout in under a minute.</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -109,7 +128,7 @@ export default function CartDrawer() {
                 <span className="text-sm text-[#6E6E6E]">Subtotal</span>
                 <span className="font-display font-semibold text-[#111]">{formatPrice(totalPrice)}</span>
               </div>
-              <p className="text-xs text-[#6E6E6E]">Shipping calculated at checkout</p>
+              <p className="text-xs text-[#6E6E6E]">Secure checkout, COD supported, address edits allowed before dispatch.</p>
               <button
                 className="w-full btn-primary"
                 onClick={() => {

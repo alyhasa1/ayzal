@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from '@remix-run/react';
+import { useNavigate } from '@remix-run/react';
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 import gsap from 'gsap';
 import { useCart } from '@/hooks/useCart';
+import { useGuestToken } from "@/hooks/useGuestToken";
 import { formatPrice } from '@/lib/format';
 import type { Product } from '@/types';
 import { ensureScrollTrigger } from '@/lib/gsap';
+import DiscoveryRail from '@/components/shop/DiscoveryRail';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -18,28 +23,83 @@ import {
   Ruler,
   Sparkles,
   Package,
-  Heart
+  Heart,
+  Star
 } from 'lucide-react';
+
+type RecommendationProduct = Pick<
+  Product,
+  "id" | "slug" | "name" | "image" | "category" | "price"
+>;
+
+const RECENT_VIEWED_STORAGE_KEY = "ayzal:recently-viewed";
+
+function isRecommendationProduct(value: unknown): value is RecommendationProduct {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.id === "string" &&
+    typeof row.name === "string" &&
+    typeof row.image === "string" &&
+    typeof row.category === "string" &&
+    typeof row.price === "number"
+  );
+}
 
 export default function ProductPage({
   product,
   relatedProducts,
+  bestSellerProducts,
+  topRatedProducts,
+  frequentlyBoughtTogether,
+  completeTheLook,
+  tagMatchProducts,
+  reviews,
+  reviewStats,
 }: {
   product: Product;
-  relatedProducts: Product[];
+  relatedProducts: RecommendationProduct[];
+  bestSellerProducts: RecommendationProduct[];
+  topRatedProducts: RecommendationProduct[];
+  frequentlyBoughtTogether: RecommendationProduct[];
+  completeTheLook: RecommendationProduct[];
+  tagMatchProducts: RecommendationProduct[];
+  reviews: Array<{
+    id: string;
+    rating: number;
+    title?: string;
+    body?: string;
+    guestName?: string;
+    verifiedPurchase: boolean;
+    createdAt: number;
+    helpfulCount: number;
+  }>;
+  reviewStats: {
+    count: number;
+    average: number;
+  };
 }) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const guestToken = useGuestToken();
+  const addServerCartItem = useMutation(api.cart.addItem);
+  const ensureWishlist = useMutation(api.wishlist.getOrCreate);
+  const addToWishlist = useMutation(api.wishlist.add);
   
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlistSaving, setIsWishlistSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'details' | 'care'>('description');
+  const [recentlyViewed, setRecentlyViewed] = useState<RecommendationProduct[]>([]);
   
   const mainRef = useRef<HTMLElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
+  const buyBoxRef = useRef<HTMLDivElement>(null);
   const relatedRef = useRef<HTMLDivElement>(null);
+  const [showStickyAtc, setShowStickyAtc] = useState(false);
 
   useEffect(() => {
     ensureScrollTrigger();
@@ -74,7 +134,14 @@ export default function ProductPage({
     }, mainRef);
 
     return () => ctx.revert();
-  }, [product]);
+  }, [
+    product.id,
+    product.slug,
+    product.name,
+    product.image,
+    product.category,
+    product.price,
+  ]);
 
   // Reset scroll when product changes
   useEffect(() => {
@@ -84,14 +151,83 @@ export default function ProductPage({
     setIsAdded(false);
   }, [product.id]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const current: RecommendationProduct = {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      image: product.image,
+      category: product.category,
+      price: product.price,
+    };
+    try {
+      const raw = window.localStorage.getItem(RECENT_VIEWED_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      const existing = Array.isArray(parsed) ? parsed.filter(isRecommendationProduct) : [];
+      const next = [current, ...existing.filter((item) => item.id !== current.id)].slice(0, 12);
+      window.localStorage.setItem(RECENT_VIEWED_STORAGE_KEY, JSON.stringify(next));
+      setRecentlyViewed(next.filter((item) => item.id !== current.id).slice(0, 8));
+    } catch {
+      setRecentlyViewed([]);
+    }
+  }, [
+    product.id,
+    product.slug,
+    product.name,
+    product.image,
+    product.category,
+    product.price,
+  ]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!buyBoxRef.current) return;
+      const shouldShow = window.innerWidth < 1024 && buyBoxRef.current.getBoundingClientRect().bottom < 0;
+      setShowStickyAtc(shouldShow);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [product.id]);
+
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(product, 'Unstitched');
+      if (guestToken) {
+        void addServerCartItem({
+          guest_token: guestToken,
+          product_id: product.id as Id<"products">,
+          quantity: 1,
+        }).catch(() => {
+          // Keep local UX responsive; checkout will reconcile if sync fails.
+        });
+      }
     }
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleSaveToWishlist = async () => {
+    if (!guestToken || isWishlistSaving) return;
+    setIsWishlistSaving(true);
+    try {
+      await ensureWishlist({ guest_token: guestToken });
+      await addToWishlist({
+        guest_token: guestToken,
+        product_id: product.id as Id<"products">,
+      });
+      setIsWishlisted(true);
+    } finally {
+      setIsWishlistSaving(false);
+    }
   };
 
   const nextImage = () => {
@@ -100,6 +236,25 @@ export default function ProductPage({
 
   const prevImage = () => {
     setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const renderRecommendationSection = (title: string, items: RecommendationProduct[]) => {
+    if (items.length === 0) return null;
+    return (
+      <section className="border-t border-[#111]/10 px-6 py-12 lg:px-12">
+        <div className="shop-shell">
+          <DiscoveryRail
+            title={title}
+            subtitle="Personalized recommendations based on browsing and purchase behavior."
+            items={items.map((item) => ({
+              ...item,
+              inStock: true,
+            }))}
+            microcopy="Curated to increase confidence before checkout."
+          />
+        </div>
+      </section>
+    );
   };
 
   return (
@@ -204,6 +359,29 @@ export default function ProductPage({
               <p className="font-display text-2xl text-[#D4A05A] mb-6">
                 {formatPrice(product.price)}
               </p>
+
+              {reviewStats.count > 0 ? (
+                <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-[#111]/10 bg-white px-4 py-2">
+                  <div className="inline-flex items-center gap-1 text-[#D4A05A]">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <Star
+                        key={index}
+                        className={`w-4 h-4 ${
+                          index < Math.round(reviewStats.average) ? 'fill-current' : ''
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm text-[#111]">
+                    {reviewStats.average} ({reviewStats.count} review
+                    {reviewStats.count === 1 ? '' : 's'})
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs uppercase tracking-widest text-[#6E6E6E] mb-6">
+                  Be the first to review this item
+                </p>
+              )}
               
               {/* Short Description */}
               <p className="text-[#6E6E6E] mb-8 leading-relaxed">
@@ -279,63 +457,107 @@ export default function ProductPage({
               </div>
 
               {/* Quantity & Add to Cart */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                {/* Quantity */}
-                <div className="flex items-center border border-[#111]/20">
+              <div ref={buyBoxRef} className="mb-8 space-y-3">
+                <div className="trust-line">
+                  Fast dispatch promise: most orders leave our warehouse within 24 hours. Address
+                  changes are supported before dispatch.
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Quantity */}
+                  <div className="flex items-center border border-[#111]/20">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-12 h-12 flex items-center justify-center hover:bg-[#111]/5 transition-colors"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-12 text-center font-medium">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-12 h-12 flex items-center justify-center hover:bg-[#111]/5 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Add to Cart */}
                   <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-12 h-12 flex items-center justify-center hover:bg-[#111]/5 transition-colors"
+                    onClick={handleAddToCart}
+                    className="flex-1 btn-primary flex items-center justify-center gap-3"
                   >
-                    <Minus className="w-4 h-4" />
+                    {isAdded ? (
+                      <>
+                        <Check className="w-5 h-5" />
+                        Added to Bag
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-5 h-5" />
+                        Add to Bag
+                      </>
+                    )}
                   </button>
-                  <span className="w-12 text-center font-medium">{quantity}</span>
+
+                  {/* Wishlist */}
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-12 h-12 flex items-center justify-center hover:bg-[#111]/5 transition-colors"
+                    onClick={handleSaveToWishlist}
+                    disabled={!guestToken || isWishlistSaving}
+                    className={`w-12 h-12 border flex items-center justify-center transition-colors ${
+                      isWishlisted
+                        ? 'border-[#D4A05A] text-[#D4A05A] bg-[#D4A05A]/10'
+                        : 'border-[#111]/20 hover:border-[#D4A05A] hover:text-[#D4A05A]'
+                    }`}
+                    aria-label="Save to wishlist"
+                    title={isWishlisted ? 'Saved to wishlist' : 'Save to wishlist'}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                   </button>
                 </div>
-                
-                {/* Add to Cart */}
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 btn-primary flex items-center justify-center gap-3"
-                >
-                  {isAdded ? (
-                    <>
-                      <Check className="w-5 h-5" />
-                      Added to Bag
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-5 h-5" />
-                      Add to Bag
-                    </>
-                  )}
-                </button>
-                
-                {/* Wishlist */}
-                <button className="w-12 h-12 border border-[#111]/20 flex items-center justify-center hover:border-[#D4A05A] hover:text-[#D4A05A] transition-colors">
-                  <Heart className="w-5 h-5" />
-                </button>
               </div>
 
               {/* Trust Badges */}
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="text-center">
                   <Truck className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
-                  <p className="text-xs text-[#6E6E6E]">Free Delivery</p>
+                  <p className="text-xs text-[#6E6E6E]">Free Delivery Over PKR 15k</p>
                 </div>
                 <div className="text-center">
                   <Shield className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
-                  <p className="text-xs text-[#6E6E6E]">Authentic Quality</p>
+                  <p className="text-xs text-[#6E6E6E]">Secure COD Checkout</p>
                 </div>
                 <div className="text-center">
                   <RotateCcw className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
-                  <p className="text-xs text-[#6E6E6E]">Easy Returns</p>
+                  <p className="text-xs text-[#6E6E6E]">7 Day Easy Returns</p>
                 </div>
               </div>
+
+              {reviews.length > 0 ? (
+                <div className="mb-8 border border-[#111]/10 bg-white/70 p-4 space-y-3">
+                  <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">
+                    Recent Reviews
+                  </p>
+                  {reviews.slice(0, 2).map((review) => (
+                    <div key={review.id} className="border-t border-[#111]/10 pt-3 first:border-t-0 first:pt-0">
+                      <div className="flex items-center gap-1 text-[#D4A05A] mb-1">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <Star
+                            key={index}
+                            className={`w-3 h-3 ${index < review.rating ? 'fill-current' : ''}`}
+                          />
+                        ))}
+                      </div>
+                      {review.title ? <p className="text-sm font-medium text-[#111]">{review.title}</p> : null}
+                      {review.body ? (
+                        <p className="text-sm text-[#6E6E6E] leading-relaxed mt-1">{review.body}</p>
+                      ) : null}
+                      <p className="text-[11px] uppercase tracking-widest text-[#6E6E6E] mt-2">
+                        {review.guestName ?? 'Verified Customer'}
+                        {review.verifiedPurchase ? ' - Verified Buyer' : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
 
               {/* Tabs */}
               <div className="border-t border-[#111]/10 pt-6">
@@ -378,7 +600,7 @@ export default function ProductPage({
                           <strong>Dimensions:</strong>
                           <ul className="mt-2 space-y-1 ml-4">
                             {product.includes?.map((item, idx) => (
-                              <li key={idx}>? {item}</li>
+                              <li key={idx}>- {item}</li>
                             ))}
                           </ul>
                         </div>
@@ -406,36 +628,34 @@ export default function ProductPage({
         </div>
       </section>
 
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
-        <section ref={relatedRef} className="px-6 lg:px-12 py-16 border-t border-[#111]/10">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="headline-lg text-2xl text-[#111] mb-8">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.map((related) => (
-                <Link
-                  key={related.id}
-                  to={`/product/${related.slug ?? related.id}`}
-                  className="text-left group block"
-                >
-                  <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-4">
-                    <img
-                      src={related.image}
-                      alt={`${related.name} - ${related.category} Pakistani Dress`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
-                  <h3 className="font-medium text-sm text-[#111] mb-1 group-hover:text-[#D4A05A] transition-colors">
-                    {related.name}
-                  </h3>
-                  <p className="text-sm text-[#6E6E6E]">{formatPrice(related.price)}</p>
-                </Link>
-              ))}
+      {relatedProducts.length > 0 ? (
+        <div ref={relatedRef}>
+          {renderRecommendationSection("You May Also Like", relatedProducts)}
+        </div>
+      ) : null}
+      {renderRecommendationSection("Frequently Bought Together", frequentlyBoughtTogether)}
+      {renderRecommendationSection("Complete The Look", completeTheLook)}
+      {renderRecommendationSection("Style Matches", tagMatchProducts)}
+      {renderRecommendationSection("Best Sellers Right Now", bestSellerProducts)}
+      {renderRecommendationSection("Top Rated Picks", topRatedProducts)}
+      {renderRecommendationSection("Recently Viewed", recentlyViewed)}
+
+      {showStickyAtc ? (
+        <div className="fixed inset-x-0 bottom-0 z-[120] bg-white border-t border-[#111]/10 p-3 shadow-2xl lg:hidden">
+          <div className="max-w-7xl mx-auto flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs uppercase tracking-widest text-[#6E6E6E] truncate">{product.name}</p>
+              <p className="font-display text-lg text-[#111]">{formatPrice(product.price)}</p>
             </div>
+            <button
+              onClick={handleAddToCart}
+              className="btn-primary px-5 py-2.5 text-xs whitespace-nowrap"
+            >
+              {isAdded ? "Added" : "Add to Bag"}
+            </button>
           </div>
-        </section>
-      )}
+        </div>
+      ) : null}
     </main>
   );
 }

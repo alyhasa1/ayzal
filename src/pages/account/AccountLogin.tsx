@@ -1,25 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from '@remix-run/react';
-import { useConvexAuth } from 'convex/react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation, useSearchParams } from '@remix-run/react';
+import { useConvexAuth, useMutation } from 'convex/react';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { api } from '../../../convex/_generated/api';
+import { formatAuthErrorMessage, formatOrderLinkErrorMessage } from '@/lib/authErrors';
 
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
-function formatAuthError(err: unknown) {
-  const message = (err as { message?: string } | null)?.message ?? '';
-  if (
-    message.includes('InvalidAccountId') ||
-    message.includes('InvalidSecret') ||
-    message.includes('Invalid credentials')
-  ) {
-    return 'Invalid email or password.';
+function sanitizeRedirectPath(value: string | null, fallback: string) {
+  if (!value) return fallback;
+  if (value.startsWith('/') && !value.startsWith('//')) {
+    return value;
   }
-  if (message.includes('TooManyFailedAttempts')) {
-    return 'Too many failed attempts. Please try again later.';
-  }
-  return message || 'Unable to sign in';
+  return fallback;
 }
 
 export default function AccountLogin() {
@@ -28,18 +23,76 @@ export default function AccountLogin() {
   const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [claimingOrder, setClaimingOrder] = useState(false);
   const { signIn } = useAuthActions();
   const { isAuthenticated } = useConvexAuth();
+  const claimGuestOrder = useMutation(api.orders.claimGuestOrder);
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const initializedFromParams = useRef(false);
+  const handledPostAuth = useRef(false);
+
+  const checkoutEmail = normalizeEmail(searchParams.get('checkout_email') ?? '');
+  const checkoutModeParam = searchParams.get('mode');
+  const checkoutMode =
+    checkoutModeParam === 'signIn' || checkoutModeParam === 'signUp'
+      ? checkoutModeParam
+      : null;
+  const orderId = searchParams.get('order_id');
+  const guestToken = searchParams.get('guest_token');
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const state = location.state as { from?: { pathname?: string } } | null;
-      const redirectTo = state?.from?.pathname || '/account/orders';
-      navigate(redirectTo);
+    if (initializedFromParams.current) return;
+    if (checkoutEmail) {
+      setEmail(checkoutEmail);
     }
-  }, [isAuthenticated, location.state, navigate]);
+    if (checkoutMode) {
+      setMode(checkoutMode);
+    }
+    initializedFromParams.current = true;
+  }, [checkoutEmail, checkoutMode]);
+
+  useEffect(() => {
+    if (!isAuthenticated || handledPostAuth.current) return;
+    handledPostAuth.current = true;
+
+    const state = location.state as { from?: { pathname?: string } } | null;
+    const fallbackRedirect = state?.from?.pathname || '/account/orders';
+    const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'), fallbackRedirect);
+
+    const linkOrder = async () => {
+      if (!orderId || !guestToken || !checkoutEmail) {
+        navigate(redirectTo);
+        return;
+      }
+
+      setClaimingOrder(true);
+      try {
+        await claimGuestOrder({
+          order_id: orderId as any,
+          guest_token: guestToken,
+          contact_email: checkoutEmail,
+        });
+      } catch (err: unknown) {
+        setError(formatOrderLinkErrorMessage(err));
+      } finally {
+        setClaimingOrder(false);
+        navigate(redirectTo);
+      }
+    };
+
+    void linkOrder();
+  }, [
+    isAuthenticated,
+    location.state,
+    navigate,
+    searchParams,
+    claimGuestOrder,
+    orderId,
+    guestToken,
+    checkoutEmail,
+  ]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -53,7 +106,7 @@ export default function AccountLogin() {
         password,
       });
     } catch (err: unknown) {
-      setError(formatAuthError(err));
+      setError(formatAuthErrorMessage(err, { mode, audience: 'customer' }));
     } finally {
       setLoading(false);
     }
@@ -67,6 +120,11 @@ export default function AccountLogin() {
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E] mt-2">Customer Account</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {checkoutEmail ? (
+            <p className="text-xs text-[#6E6E6E]">
+              Sign in or create account with your checkout email to view your new order.
+            </p>
+          ) : null}
           <input
             type="email"
             value={email}
@@ -89,14 +147,21 @@ export default function AccountLogin() {
           {error && <p className="text-xs text-red-500">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || claimingOrder}
             className="w-full btn-primary mt-2"
           >
-            {loading ? 'Please wait...' : mode === 'signIn' ? 'Sign In' : 'Create Account'}
+            {loading
+              ? 'Please wait...'
+              : claimingOrder
+                ? 'Linking your order...'
+                : mode === 'signIn'
+                  ? 'Sign In'
+                  : 'Create Account'}
           </button>
         </form>
         <button
           className="mt-6 text-xs uppercase tracking-widest text-[#6E6E6E] hover:text-[#111]"
+          disabled={loading || claimingOrder}
           onClick={() => setMode(mode === 'signIn' ? 'signUp' : 'signIn')}
         >
           {mode === 'signIn' ? 'Create an account' : 'Use existing account'}

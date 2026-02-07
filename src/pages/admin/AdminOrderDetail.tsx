@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from '@remix-run/react';
+import { useParams, Link, useNavigate } from '@remix-run/react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -8,7 +8,8 @@ import { StatusBadge } from '@/components/OrderTimeline';
 import OrderTimeline from '@/components/OrderTimeline';
 import FormField, { fieldInputClass, fieldSelectClass } from '@/components/admin/FormField';
 import { useToast } from '@/components/admin/Toast';
-import { ArrowLeft, Printer } from 'lucide-react';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { ArrowLeft, Printer, Trash2 } from 'lucide-react';
 
 const statusOptions = [
   'pending',
@@ -31,11 +32,14 @@ function formatDate(ts: number) {
 
 export default function AdminOrderDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const order = useQuery(
     api.orders.adminGetById,
     id ? { id: id as Id<'orders'> } : 'skip'
   );
+  const deleteAccess = useQuery(api.orders.adminDeleteAccess);
   const adminUpdate = useMutation(api.orders.adminUpdate);
+  const adminDelete = useMutation(api.orders.adminDelete);
   const { toast } = useToast();
 
   const [status, setStatus] = useState('');
@@ -44,7 +48,11 @@ export default function AdminOrderDetail() {
   const [trackingUrl, setTrackingUrl] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [syncKey, setSyncKey] = useState(0);
+
+  const canDeleteOrder = deleteAccess?.allowed ?? false;
 
   useEffect(() => {
     if (order) {
@@ -53,7 +61,7 @@ export default function AdminOrderDetail() {
       setTrackingNumber(order.tracking_number ?? '');
       setTrackingUrl(order.tracking_url ?? '');
     }
-  }, [order?._id, syncKey]);
+  }, [order, syncKey]);
 
   if (order === null) {
     return (
@@ -104,6 +112,24 @@ export default function AdminOrderDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const result = (await adminDelete({ id: order._id })) as { deleted: boolean };
+      if (!result?.deleted) {
+        toast('Order was already deleted', 'info');
+      } else {
+        toast('Order deleted');
+      }
+      navigate('/admin/orders');
+    } catch (err: any) {
+      toast(err?.message ?? 'Failed to delete order', 'error');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between gap-4">
@@ -126,15 +152,31 @@ export default function AdminOrderDetail() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 px-3 py-2 text-xs border border-[#111]/10 hover:border-[#D4A05A] transition-colors"
-          onClick={() => window.print()}
-        >
-          <Printer className="w-3.5 h-3.5" />
-          Print
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="flex items-center gap-2 px-3 py-2 text-xs border border-[#111]/10 hover:border-[#D4A05A] transition-colors"
+            onClick={() => window.print()}
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Print
+          </button>
+          {canDeleteOrder ? (
+            <button
+              type="button"
+              className="flex items-center gap-2 px-3 py-2 text-xs border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+              onClick={() => setDeleteConfirmOpen(true)}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Order
+            </button>
+          ) : null}
+        </div>
       </div>
+
+      {deleteAccess && !deleteAccess.allowed ? (
+        <p className="text-xs text-[#6E6E6E]">{deleteAccess.reason}</p>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6">
         <div className="space-y-6">
@@ -284,6 +326,18 @@ export default function AdminOrderDetail() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete Order"
+        message={`Delete #${formatOrderNumber(order)}? This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        destructive
+        onConfirm={handleDelete}
+        onCancel={() => {
+          if (!deleting) setDeleteConfirmOpen(false);
+        }}
+      />
     </div>
   );
 }

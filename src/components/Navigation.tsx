@@ -8,8 +8,10 @@ interface NavigationProps {
 }
 
 export default function Navigation({ onMenuOpen }: NavigationProps) {
+  const popularSearches = ['lawn suits', 'eid edits', 'bridal', 'new arrivals'];
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { totalItems, setIsCartOpen } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -109,10 +111,21 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
           onClick={() => setIsSearchOpen(false)}
         />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-6">
-          <div className="relative">
+          <form
+            className="relative"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const query = searchQuery.trim();
+              if (!query) return;
+              setIsSearchOpen(false);
+              navigate(`/search?q=${encodeURIComponent(query)}`);
+            }}
+          >
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search by style, fabric, color, or SKU"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full bg-transparent border-b-2 border-white/30 text-white text-2xl lg:text-4xl py-4 focus:outline-none focus:border-[#D4A05A] placeholder:text-white/40 font-display tracking-wide"
               autoFocus={isSearchOpen}
             />
@@ -122,6 +135,24 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
             >
               <X className="w-6 h-6" />
             </button>
+          </form>
+          <p className="mt-3 text-xs uppercase tracking-widest text-white/60">
+            Need help deciding? Start with one of these.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {popularSearches.map((label) => (
+              <button
+                key={label}
+                type="button"
+                className="rounded-full border border-white/30 px-3 py-1.5 text-xs uppercase tracking-widest text-white/85 hover:border-[#D4A05A] hover:text-[#D4A05A] transition-colors"
+                onClick={() => {
+                  setIsSearchOpen(false);
+                  navigate(`/search?q=${encodeURIComponent(label)}`);
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>

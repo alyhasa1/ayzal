@@ -76,8 +76,9 @@ export default function AccountProfile() {
 
   const defaultAddress = useMemo(() => {
     if (!defaultAddressId) return null;
-    return addresses.find((a: any) => a._id === defaultAddressId) ?? null;
-  }, [addresses, defaultAddressId]);
+    const availableAddresses = addressBundle?.addresses ?? [];
+    return availableAddresses.find((a: any) => a._id === defaultAddressId) ?? null;
+  }, [addressBundle, defaultAddressId]);
 
   const handleSaveProfile = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -480,4 +481,3 @@ export default function AccountProfile() {
     </div>
   );
 }
-

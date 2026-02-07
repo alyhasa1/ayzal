@@ -10,6 +10,8 @@
     "dev:pages": "npx --yes wrangler@4.62.0 pages dev ./public --compatibility-date=2026-02-05 --port 3000",
     "build": "remix build && node scripts/prepare-pages-output.mjs",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:all": "npm run lint && npm run test && npm run build",
     "start": "remix-serve build",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy"
@@ -86,8 +88,10 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.4"
+    "typescript-eslint": "^8.46.4",
+    "vitest": "^4.0.18"
   }
 }

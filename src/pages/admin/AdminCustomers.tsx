@@ -15,19 +15,21 @@ function formatDate(ts: number | null) {
 }
 
 export default function AdminCustomers() {
-  const customers = useQuery(api.userProfiles.adminListAll) ?? [];
+  const customersQuery = useQuery(api.userProfiles.adminListAll);
+  const customers = customersQuery ?? [];
   const [searchQuery, setSearchQuery] = useState('');
 
   const filtered = useMemo(() => {
-    if (!searchQuery) return customers;
+    const customerRows = customersQuery ?? [];
+    if (!searchQuery) return customerRows;
     const q = searchQuery.toLowerCase();
-    return customers.filter(
+    return customerRows.filter(
       (c) =>
         c.email.toLowerCase().includes(q) ||
         c.name.toLowerCase().includes(q) ||
         c.phone.toLowerCase().includes(q)
     );
-  }, [customers, searchQuery]);
+  }, [customersQuery, searchQuery]);
 
   return (
     <div className="space-y-5">

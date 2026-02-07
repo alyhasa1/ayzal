@@ -31,7 +31,15 @@ const emptyForm = {
   slug: '',
   meta_title: '',
   meta_description: '',
+  tags: '',
 };
+
+function parseTagDraft(value: string) {
+  return value
+    .split(/[\n,]+/)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
 
 function ImagePreview({ url, alt }: { url: string; alt?: string }) {
   if (!url) return null;
@@ -81,15 +89,16 @@ function Section({
 }
 
 export default function AdminProducts() {
-  const productsRaw = useQuery(api.products.list) ?? [];
+  const productsRawQuery = useQuery(api.products.list);
   const categories = useQuery(api.categories.list) ?? [];
   const paymentMethods = useQuery(api.paymentMethods.list) ?? [];
   const createProduct = useMutation(api.products.create);
   const updateProduct = useMutation(api.products.update);
+  const setProductTags = useMutation(api.products.setTags);
   const removeProduct = useMutation(api.products.remove);
   const { toast } = useToast();
 
-  const products = useMemo(() => productsRaw.map(mapProduct), [productsRaw]);
+  const products = useMemo(() => (productsRawQuery ?? []).map(mapProduct), [productsRawQuery]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -150,6 +159,7 @@ export default function AdminProducts() {
       slug: product.slug ?? '',
       meta_title: product.metaTitle ?? '',
       meta_description: product.metaDescription ?? '',
+      tags: product.tags?.join(', ') ?? '',
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -186,9 +196,11 @@ export default function AdminProducts() {
 
       if (editingId) {
         await updateProduct({ id: editingId as any, ...payload });
+        await setProductTags({ id: editingId as any, tags: parseTagDraft(form.tags) });
         toast('Product updated');
       } else {
-        await createProduct(payload as any);
+        const createdId = await createProduct(payload as any);
+        await setProductTags({ id: createdId as any, tags: parseTagDraft(form.tags) });
         toast('Product created');
       }
       resetForm();
@@ -514,6 +526,17 @@ export default function AdminProducts() {
                   </label>
                 ))}
               </div>
+            </FormField>
+            <FormField
+              label="Discovery Tags"
+              hint="Use commas or new lines. These improve search and recommendation quality."
+            >
+              <textarea
+                value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                className={`${fieldTextareaClass} min-h-16`}
+                placeholder="bridal, handwork, festive, eid-edit"
+              />
             </FormField>
           </Section>
 
