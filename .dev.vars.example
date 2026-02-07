@@ -1,0 +1,5 @@
+CONVEX_URL=https://vs-123.cloud
+# Admin image upload proxy -> Cloudflare upload worker
+IMAGE_UPLOAD_WORKER_URL=https://upload.ayzalcollections.com
+IMAGE_UPLOAD_WORKER_TOKEN=replace-with-strong-random-token
+IMAGE_UPLOAD_MAX_BYTES=10485760

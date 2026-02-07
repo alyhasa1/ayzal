@@ -519,7 +519,7 @@ export default function ProductPage({
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="text-center">
                   <Truck className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
-                  <p className="text-xs text-[#6E6E6E]">Free Delivery Over PKR 15k</p>
+                  <p className="text-xs text-[#6E6E6E]">Free Delivery</p>
                 </div>
                 <div className="text-center">
                   <Shield className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
