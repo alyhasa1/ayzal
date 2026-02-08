@@ -93,6 +93,50 @@ export const quoteRates = query({
   },
 });
 
+export const getFreeShippingPolicy = query({
+  args: {
+    country: v.optional(v.string()),
+    state: v.optional(v.string()),
+    city: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const zones = await ctx.db
+      .query("shipping_zones")
+      .withIndex("by_active", (q) => q.eq("active", true))
+      .collect();
+    const activeMethods = await ctx.db
+      .query("shipping_methods")
+      .withIndex("by_active", (q) => q.eq("active", true))
+      .collect();
+
+    const matchedZoneIds = zones
+      .filter((zone) => zoneMatches(zone, args))
+      .map((zone) => zone._id);
+
+    const eligibleMethods = activeMethods.filter((method) => {
+      if (method.free_over === undefined || method.free_over <= 0) return false;
+      if (!method.zone_id) return true;
+      return matchedZoneIds.includes(method.zone_id);
+    });
+
+    if (eligibleMethods.length === 0) {
+      return null;
+    }
+
+    const threshold = Math.min(
+      ...eligibleMethods.map((method) => method.free_over ?? Number.POSITIVE_INFINITY)
+    );
+    if (!Number.isFinite(threshold) || threshold <= 0) {
+      return null;
+    }
+
+    return {
+      threshold,
+      method_count: eligibleMethods.length,
+    };
+  },
+});
+
 export const adminListConfig = query({
   handler: async (ctx) => {
     await requirePermission(ctx, "shipping.read");

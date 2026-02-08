@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import FormField, { fieldInputClass, fieldSelectClass } from "@/components/admin/FormField";
@@ -12,6 +12,12 @@ function parseOptionalNumber(value: string) {
   return parsed;
 }
 
+function normalizeStockQuantity(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.floor(parsed));
+}
+
 export default function AdminInventory() {
   const overview = useQuery(api.inventory.adminListOverview);
   const createLocation = useMutation(api.inventory.adminCreateLocation);
@@ -21,10 +27,10 @@ export default function AdminInventory() {
   const setLevel = useMutation(api.inventory.adminSetLevel);
   const { toast } = useToast();
 
-  const products = overview?.products ?? [];
-  const variants = overview?.variants ?? [];
-  const locations = overview?.locations ?? [];
-  const levels = overview?.levels ?? [];
+  const products = useMemo(() => overview?.products ?? [], [overview?.products]);
+  const variants = useMemo(() => overview?.variants ?? [], [overview?.variants]);
+  const locations = useMemo(() => overview?.locations ?? [], [overview?.locations]);
+  const levels = useMemo(() => overview?.levels ?? [], [overview?.levels]);
 
   const sortedProducts = useMemo(
     () => [...(overview?.products ?? [])].sort((a: any, b: any) => a.name.localeCompare(b.name)),
@@ -99,6 +105,66 @@ export default function AdminInventory() {
     () => [...(overview?.variants ?? [])].sort((a: any, b: any) => b.updated_at - a.updated_at).slice(0, 50),
     [overview?.variants]
   );
+
+  const selectedVariant = useMemo(
+    () => variants.find((variant: any) => String(variant._id) === levelVariantId) ?? null,
+    [variants, levelVariantId]
+  );
+
+  const selectedProductForVariantCreate = useMemo(
+    () => products.find((product: any) => String(product._id) === variantProductId) ?? null,
+    [products, variantProductId]
+  );
+
+  const selectedProductForLevel = useMemo(
+    () =>
+      selectedVariant
+        ? products.find((product: any) => String(product._id) === String(selectedVariant.product_id)) ?? null
+        : null,
+    [products, selectedVariant]
+  );
+
+  const selectedExistingLevel = useMemo(() => {
+    if (!levelVariantId || !levelLocationId) return null;
+    return (
+      levels.find(
+        (row: any) =>
+          String(row.variant_id) === String(levelVariantId) &&
+          String(row.location_id) === String(levelLocationId)
+      ) ?? null
+    );
+  }, [levels, levelVariantId, levelLocationId]);
+
+  useEffect(() => {
+    if (!variantProductId) {
+      setVariantInStock(true);
+      return;
+    }
+    const baseStock = normalizeStockQuantity(selectedProductForVariantCreate?.stock_quantity);
+    setVariantInStock(baseStock > 0);
+  }, [variantProductId, selectedProductForVariantCreate?.stock_quantity]);
+
+  useEffect(() => {
+    if (!levelVariantId || !levelLocationId) return;
+
+    if (selectedExistingLevel) {
+      setLevelAvailable(String(selectedExistingLevel.available ?? 0));
+      setLevelReserved(String(selectedExistingLevel.reserved ?? 0));
+      setLevelCommitted(String(selectedExistingLevel.committed ?? 0));
+      setLevelSafetyStock(
+        selectedExistingLevel.safety_stock !== undefined
+          ? String(selectedExistingLevel.safety_stock)
+          : ""
+      );
+      return;
+    }
+
+    const fallbackStock = normalizeStockQuantity(selectedProductForLevel?.stock_quantity);
+    setLevelAvailable(String(fallbackStock));
+    setLevelReserved("0");
+    setLevelCommitted("0");
+    setLevelSafetyStock("");
+  }, [levelVariantId, levelLocationId, selectedExistingLevel, selectedProductForLevel?.stock_quantity]);
 
   const handleCreateLocation = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -220,23 +286,23 @@ export default function AdminInventory() {
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Products</p>
-          <p className="font-display text-2xl">{products.length}</p>
+          <p className="font-display text-xl">{products.length}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Variants</p>
-          <p className="font-display text-2xl">{variants.length}</p>
+          <p className="font-display text-xl">{variants.length}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Locations</p>
-          <p className="font-display text-2xl">{locations.length}</p>
+          <p className="font-display text-xl">{locations.length}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Stock Levels</p>
-          <p className="font-display text-2xl">{levels.length}</p>
+          <p className="font-display text-xl">{levels.length}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Low Stock</p>
-          <p className="font-display text-2xl">{lowStockCount}</p>
+          <p className="font-display text-xl">{lowStockCount}</p>
         </div>
       </div>
 
@@ -305,6 +371,14 @@ export default function AdminInventory() {
               ))}
             </select>
           </FormField>
+          {selectedProductForVariantCreate ? (
+            <p className="text-xs text-[#6E6E6E]">
+              Current product stock:{" "}
+              <span className="font-medium">
+                {normalizeStockQuantity(selectedProductForVariantCreate.stock_quantity)} units
+              </span>
+            </p>
+          ) : null}
           <FormField label="SKU" required>
             <input
               className={fieldInputClass}
@@ -372,6 +446,14 @@ export default function AdminInventory() {
               ))}
             </select>
           </FormField>
+          {selectedProductForLevel ? (
+            <p className="text-xs text-[#6E6E6E]">
+              Product base stock:{" "}
+              <span className="font-medium">
+                {normalizeStockQuantity(selectedProductForLevel.stock_quantity)} units
+              </span>
+            </p>
+          ) : null}
           <FormField label="Location" required>
             <select
               className={fieldSelectClass}

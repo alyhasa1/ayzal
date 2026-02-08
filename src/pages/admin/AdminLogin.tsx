@@ -46,7 +46,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-[#0B0F17] text-white flex items-center justify-center px-6">
       <div className="w-full max-w-md bg-white/5 border border-white/10 p-8">
         <div className="mb-8 text-center">
-          <div className="font-display text-2xl tracking-[0.3em]">AYZAL</div>
+          <div className="font-display text-xl tracking-[0.3em]">AYZAL</div>
           <p className="text-xs uppercase tracking-widest text-white/60 mt-2">Admin Access</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

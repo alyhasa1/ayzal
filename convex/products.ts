@@ -25,6 +25,7 @@ const productFields = {
   sizes: v.optional(v.array(v.string())),
   sku: v.optional(v.string()),
   in_stock: v.optional(v.boolean()),
+  stock_quantity: v.optional(v.number()),
   is_new_arrival: v.optional(v.boolean()),
   spotlight_rank: v.optional(v.number()),
   meta_title: v.optional(v.string()),
@@ -33,6 +34,11 @@ const productFields = {
 
 function normalizeTag(value: string) {
   return value.trim().toLowerCase();
+}
+
+function normalizeStockQuantity(value: number | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.max(0, Math.floor(value));
 }
 
 async function generateUniqueSlug(ctx: any, baseSlug: string, excludeId?: string) {
@@ -870,6 +876,11 @@ export const create = mutation({
     await requireAdmin(ctx);
     const now = Date.now();
     const slug = await generateUniqueSlug(ctx, slugify(args.name));
+    const normalizedStockQuantity = normalizeStockQuantity(args.stock_quantity);
+    const stockQuantity =
+      normalizedStockQuantity ?? (args.in_stock === false ? 0 : 1);
+    const inStock = stockQuantity > 0;
+
     const productId = await ctx.db.insert("products", {
       name: args.name,
       slug,
@@ -885,7 +896,8 @@ export const create = mutation({
       care: args.care,
       sizes: args.sizes,
       sku: args.sku,
-      in_stock: args.in_stock ?? true,
+      in_stock: inStock,
+      stock_quantity: stockQuantity,
       is_new_arrival: args.is_new_arrival ?? false,
       spotlight_rank: args.spotlight_rank,
       created_at: now,
@@ -913,6 +925,11 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
+    const before = await ctx.db.get(args.id);
+    if (!before) {
+      throw new Error("Product not found");
+    }
+
     const update: any = { updated_at: Date.now() };
     for (const key of Object.keys(productFields)) {
       const value = (args as any)[key];
@@ -920,6 +937,23 @@ export const update = mutation({
         update[key] = value;
       }
     }
+
+    const normalizedStockQuantity = normalizeStockQuantity(args.stock_quantity);
+    if (normalizedStockQuantity !== undefined) {
+      update.stock_quantity = normalizedStockQuantity;
+      update.in_stock = normalizedStockQuantity > 0;
+    } else if (args.in_stock !== undefined) {
+      const existingQuantity =
+        normalizeStockQuantity((before as any).stock_quantity) ??
+        ((before as any).in_stock === false ? 0 : 1);
+      update.in_stock = args.in_stock;
+      if (!args.in_stock) {
+        update.stock_quantity = 0;
+      } else if (existingQuantity <= 0) {
+        update.stock_quantity = 1;
+      }
+    }
+
     if (args.name !== undefined) {
       update.slug = await generateUniqueSlug(ctx, slugify(args.name), args.id);
     }

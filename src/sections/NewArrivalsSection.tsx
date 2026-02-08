@@ -82,7 +82,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Title Row */}
         <div ref={titleRef} className="flex items-center justify-between mb-12">
-          <h2 className="headline-lg text-2xl md:text-3xl lg:text-4xl text-[#111]">
+          <h2 className="headline-lg text-xl md:text-1xl lg:text-4xl text-[#111]">
             New Arrivals
           </h2>
           <a
@@ -101,7 +101,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
           {newArrivals.map((product) => (
             <div
               key={product.id}
-              className="product-card group rounded-2xl border border-[#111]/10 bg-white/60 shadow-sm transition-shadow hover:shadow-lg p-4"
+              className="product-card group rounded-xl border border-[#111]/10 bg-white/60 shadow-sm transition-shadow hover:shadow-lg p-4"
             >
               {/* Image */}
               <div 

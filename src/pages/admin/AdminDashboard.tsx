@@ -88,7 +88,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl mb-1">Overview</h2>
+        <h2 className="font-display text-xl mb-1">Overview</h2>
         <p className="text-sm text-[#6E6E6E]">Manage products, content, and orders.</p>
       </div>
 

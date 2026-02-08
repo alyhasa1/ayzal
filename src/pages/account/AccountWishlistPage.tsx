@@ -11,7 +11,7 @@ export default function AccountWishlistPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-2xl">My Wishlist</h2>
+      <h2 className="font-display text-xl">My Wishlist</h2>
       {wishlist === undefined ? (
         <div className="bg-white border border-[#111]/10 p-5 text-sm text-[#6E6E6E]">
           Loading wishlist...

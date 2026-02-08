@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from '@remix-run/react';
+import { Link, useLocation, useNavigate } from '@remix-run/react';
 import { Menu, Search, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 
@@ -18,6 +18,7 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
   
   // Check if we're on product page (for nav styling)
   const isProductPage = location.pathname.startsWith('/product/');
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,21 +30,17 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
 
   // Determine text color based on page and scroll
   const getTextColor = () => {
-    if (isProductPage) {
+    if (isProductPage || !isHomePage) {
       return isScrolled ? 'text-[#111]' : 'text-[#111]';
     }
     return isScrolled ? 'text-[#111]' : 'text-white';
-  };
-
-  const handleLogoClick = () => {
-    navigate('/');
   };
 
   return (
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-          isScrolled || isProductPage
+          isScrolled || isProductPage || !isHomePage
             ? 'bg-[#F6F2EE]/95 backdrop-blur-md shadow-sm'
             : 'bg-transparent'
         }`}
@@ -60,12 +57,12 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
             </button>
 
             {/* Center - Logo */}
-            <button
-              onClick={handleLogoClick}
-              className={`font-display text-xl lg:text-2xl font-bold tracking-[0.25em] transition-colors ${getTextColor()}`}
+            <Link
+              to="/"
+              className={`font-display text-xl lg:text-xl font-bold tracking-[0.25em] transition-colors ${getTextColor()}`}
             >
               AYZAL
-            </button>
+            </Link>
 
             {/* Right - Search & Cart */}
             <div className="flex items-center gap-4">
@@ -110,7 +107,7 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
           className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           onClick={() => setIsSearchOpen(false)}
         />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-6">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-6">
           <form
             className="relative"
             onSubmit={(event) => {
@@ -126,7 +123,7 @@ export default function Navigation({ onMenuOpen }: NavigationProps) {
               placeholder="Search by style, fabric, color, or SKU"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full bg-transparent border-b-2 border-white/30 text-white text-2xl lg:text-4xl py-4 focus:outline-none focus:border-[#D4A05A] placeholder:text-white/40 font-display tracking-wide"
+              className="w-full bg-transparent border-b-2 border-white/30 text-white text-xl lg:text-4xl py-4 focus:outline-none focus:border-[#D4A05A] placeholder:text-white/40 font-display tracking-wide"
               autoFocus={isSearchOpen}
             />
             <button

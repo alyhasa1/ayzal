@@ -79,7 +79,7 @@ export default function CollectionRoute() {
           <p className="eyebrow text-[#6E6E6E] mb-2">Collection</p>
           <h1 className="font-display text-[var(--font-display-tight)] text-[#111]">{collection.name}</h1>
           {collection.description ? (
-            <p className="support-copy mt-3 max-w-3xl">{collection.description}</p>
+            <p className="support-copy mt-3 max-w-1xl">{collection.description}</p>
           ) : null}
           <p className="mt-2 text-xs uppercase tracking-widest text-[#6E6E6E]">
             Curated for discovery, conversion, and faster decision making.

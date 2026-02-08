@@ -141,7 +141,7 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-1xl space-y-6">
       <h2 className="font-display text-xl">Site Settings</h2>
 
       <div className="bg-white border border-[#111]/10 p-5 space-y-4">

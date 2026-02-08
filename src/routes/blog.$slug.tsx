@@ -116,11 +116,11 @@ export default function BlogPostRoute() {
       />
 
       <section className="pt-24 pb-8 px-6 lg:px-12">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-1xl mx-auto space-y-4">
           <Link to="/blog" className="text-xs uppercase tracking-widest text-[#6E6E6E] hover:text-[#111]">
             Back to Journal
           </Link>
-          <h1 className="font-display text-3xl md:text-5xl text-[#111] leading-tight">{post.title}</h1>
+          <h1 className="font-display text-1xl md:text-5xl text-[#111] leading-tight">{post.title}</h1>
           <p className="text-sm text-[#6E6E6E]">
             {formatPublishedDate(post.published_at)} by {post.author || "Ayzal Editorial"}
           </p>
@@ -129,7 +129,7 @@ export default function BlogPostRoute() {
 
       {post.cover_image ? (
         <section className="px-6 lg:px-12 pb-8">
-          <div className="max-w-4xl mx-auto overflow-hidden rounded-2xl border border-[#111]/10">
+          <div className="max-w-4xl mx-auto overflow-hidden rounded-xl border border-[#111]/10">
             <img
               src={post.cover_image}
               alt={post.title}
@@ -140,7 +140,7 @@ export default function BlogPostRoute() {
       ) : null}
 
       <section className="px-6 lg:px-12 pb-20">
-        <article className="max-w-3xl mx-auto bg-white border border-[#111]/10 p-6 md:p-8 space-y-5">
+        <article className="max-w-1xl mx-auto bg-white border border-[#111]/10 p-6 md:p-8 space-y-5">
           {post.excerpt ? (
             <p className="text-base text-[#2D2D2D] leading-relaxed">{post.excerpt}</p>
           ) : null}

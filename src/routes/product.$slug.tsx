@@ -6,6 +6,7 @@ import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
 import { dedupeProductsById } from "@/lib/commerce";
 import ClientConvexProvider from "@/components/ClientConvexProvider";
+import BrandLoader from "@/components/BrandLoader";
 import ProductPage from "@/pages/ProductPage";
 
 const CANONICAL_BASE = "https://ayzalcollections.com";
@@ -234,7 +235,7 @@ export default function ProductRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
-      <ClientConvexProvider fallback={<div className="min-h-screen bg-[#F6F2EE]" />}>
+      <ClientConvexProvider fallback={<BrandLoader label="Loading product details..." />}>
         <ProductPage
           product={product}
           relatedProducts={relatedProducts}

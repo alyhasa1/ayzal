@@ -351,12 +351,12 @@ export default function ProductPage({
               <p className="label-text text-[#6E6E6E] mb-2">{product.sku}</p>
               
               {/* Name */}
-              <h1 className="font-display text-3xl lg:text-4xl font-semibold text-[#111] mb-4">
+              <h1 className="font-display text-1xl lg:text-4xl font-semibold text-[#111] mb-4">
                 {product.name}
               </h1>
               
               {/* Price */}
-              <p className="font-display text-2xl text-[#D4A05A] mb-6">
+              <p className="font-display text-xl text-[#D4A05A] mb-6">
                 {formatPrice(product.price)}
               </p>
 
@@ -519,7 +519,7 @@ export default function ProductPage({
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="text-center">
                   <Truck className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
-                  <p className="text-xs text-[#6E6E6E]">Free Delivery</p>
+                  <p className="text-xs text-[#6E6E6E]">Free Delivery for orders over 5000 PKR</p>
                 </div>
                 <div className="text-center">
                   <Shield className="w-5 h-5 mx-auto mb-2 text-[#D4A05A]" />
@@ -641,7 +641,7 @@ export default function ProductPage({
       {renderRecommendationSection("Recently Viewed", recentlyViewed)}
 
       {showStickyAtc ? (
-        <div className="fixed inset-x-0 bottom-0 z-[120] bg-white border-t border-[#111]/10 p-3 shadow-2xl lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-[120] bg-white border-t border-[#111]/10 p-3 shadow-xl lg:hidden">
           <div className="max-w-7xl mx-auto flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs uppercase tracking-widest text-[#6E6E6E] truncate">{product.name}</p>

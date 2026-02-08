@@ -95,7 +95,7 @@ export default function AdminAnalytics() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl">Analytics</h2>
+          <h2 className="font-display text-xl">Analytics</h2>
           <p className="text-sm text-[#6E6E6E]">
             Funnel activity, sources, and behavior trends in one place.
           </p>
@@ -149,19 +149,19 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="bg-white border border-[#111]/10 p-4">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Total Events</p>
-          <p className="font-display text-2xl">{dashboard?.total_events ?? "-"}</p>
+          <p className="font-display text-xl">{dashboard?.total_events ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-4">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Checkout Started</p>
-          <p className="font-display text-2xl">{dashboard?.funnel?.checkout_started ?? "-"}</p>
+          <p className="font-display text-xl">{dashboard?.funnel?.checkout_started ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-4">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Checkout Completed</p>
-          <p className="font-display text-2xl">{dashboard?.funnel?.checkout_completed ?? "-"}</p>
+          <p className="font-display text-xl">{dashboard?.funnel?.checkout_completed ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-4">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Completion Rate</p>
-          <p className="font-display text-2xl">
+          <p className="font-display text-xl">
             {dashboard ? `${dashboard.checkout_completion_rate}%` : "-"}
           </p>
         </div>

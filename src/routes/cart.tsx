@@ -1,9 +1,10 @@
 import ClientConvexProvider from "@/components/ClientConvexProvider";
+import BrandLoader from "@/components/BrandLoader";
 import CartPage from "@/pages/CartPage";
 
 export default function CartRoute() {
   return (
-    <ClientConvexProvider fallback={<div className="min-h-screen bg-[#F6F2EE]" />}>
+    <ClientConvexProvider fallback={<BrandLoader label="Loading your bag..." />}>
       <CartPage />
     </ClientConvexProvider>
   );

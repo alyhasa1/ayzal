@@ -3,6 +3,7 @@ import { Link } from "@remix-run/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useGuestToken } from "@/hooks/useGuestToken";
+import BrandLoader from "@/components/BrandLoader";
 import { formatPrice } from "@/lib/format";
 
 export default function WishlistPage() {
@@ -21,7 +22,7 @@ export default function WishlistPage() {
   }, [guestToken, ensureWishlist]);
 
   if (!guestToken || wishlist === undefined) {
-    return <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">Loading wishlist...</div>;
+    return <BrandLoader label="Loading wishlist..." />;
   }
 
   return (
@@ -29,7 +30,7 @@ export default function WishlistPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Saved Items</p>
-          <h1 className="font-display text-3xl mt-1">Wishlist</h1>
+          <h1 className="font-display text-1xl mt-1">Wishlist</h1>
         </div>
 
         {!wishlist || (wishlist.items ?? []).length === 0 ? (

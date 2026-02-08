@@ -131,7 +131,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#F6F2EE] px-6 lg:px-12 py-24">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10">
         <div className="space-y-6">
-          <h1 className="font-display text-2xl">Checkout</h1>
+          <h1 className="font-display text-xl">Checkout</h1>
           <form onSubmit={handleSubmit} className="space-y-5 text-sm">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-widest text-[#6E6E6E] font-medium">Contact Information</p>

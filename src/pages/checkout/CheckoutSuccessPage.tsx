@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useGuestToken } from "@/hooks/useGuestToken";
 import { formatOrderNumber, formatPrice } from "@/lib/format";
+import BrandLoader from "@/components/BrandLoader";
 
 export default function CheckoutSuccessPage({ orderNumber }: { orderNumber: string }) {
   const guestToken = useGuestToken();
@@ -17,14 +18,14 @@ export default function CheckoutSuccessPage({ orderNumber }: { orderNumber: stri
   );
 
   if (!guestToken || order === undefined) {
-    return <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">Loading order...</div>;
+    return <BrandLoader label="Loading order..." />;
   }
 
   if (!order) {
     return (
       <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">
-        <div className="max-w-2xl mx-auto bg-white border border-[#111]/10 p-6 space-y-4">
-          <h1 className="font-display text-2xl">Order Not Found</h1>
+        <div className="max-w-xl mx-auto bg-white border border-[#111]/10 p-6 space-y-4">
+          <h1 className="font-display text-xl">Order Not Found</h1>
           <p className="text-sm text-[#6E6E6E]">
             We could not find this order with the current session.
           </p>
@@ -43,10 +44,10 @@ export default function CheckoutSuccessPage({ orderNumber }: { orderNumber: stri
 
   return (
     <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">
-      <div className="max-w-3xl mx-auto bg-white border border-[#111]/10 p-6 space-y-6">
+      <div className="max-w-1xl mx-auto bg-white border border-[#111]/10 p-6 space-y-6">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Order Confirmed</p>
-          <h1 className="font-display text-3xl">Thank you for your order</h1>
+          <h1 className="font-display text-1xl">Thank you for your order</h1>
           <p className="text-sm text-[#6E6E6E]">
             Order number:{" "}
             <span className="font-medium text-[#111]">

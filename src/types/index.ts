@@ -24,6 +24,7 @@ export interface Product {
   care?: string[];
   sizes?: string[];
   inStock?: boolean;
+  stockQuantity?: number;
   sku?: string;
   isNewArrival?: boolean;
   spotlightRank?: number;

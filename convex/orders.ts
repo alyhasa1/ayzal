@@ -64,10 +64,16 @@ async function requireOrderDeleteAccess(ctx: any) {
   return admin;
 }
 
-async function deleteRowsByOrderIndex(ctx: any, table: string, orderId: any) {
+async function deleteRowsByOrderIndex(
+  ctx: any,
+  table: string,
+  indexName: string,
+  indexField: string,
+  value: any
+) {
   const rows = await ctx.db
     .query(table)
-    .withIndex("by_order", (q: any) => q.eq("order_id", orderId))
+    .withIndex(indexName, (q: any) => q.eq(indexField, value))
     .collect();
   for (const row of rows) {
     await ctx.db.delete(row._id);
@@ -83,41 +89,83 @@ async function deleteOrderGraph(ctx: any, orderId: any) {
 
   const cleanup: Record<string, number> = {};
 
-  cleanup.order_items = await deleteRowsByOrderIndex(ctx, "order_items", orderId);
+  cleanup.order_items = await deleteRowsByOrderIndex(
+    ctx,
+    "order_items",
+    "by_order",
+    "order_id",
+    orderId
+  );
   cleanup.order_status_events = await deleteRowsByOrderIndex(
     ctx,
     "order_status_events",
+    "by_order",
+    "order_id",
     orderId
   );
   cleanup.order_tracking_otps = await deleteRowsByOrderIndex(
     ctx,
     "order_tracking_otps",
+    "by_order",
+    "order_id",
     orderId
   );
   cleanup.order_tracking_sessions = await deleteRowsByOrderIndex(
     ctx,
     "order_tracking_sessions",
-    orderId
+    "by_order_number",
+    "order_number",
+    order.order_number
   );
   cleanup.discount_redemptions = await deleteRowsByOrderIndex(
     ctx,
     "discount_redemptions",
+    "by_order",
+    "order_id",
     orderId
   );
   cleanup.gift_card_transactions = await deleteRowsByOrderIndex(
     ctx,
     "gift_card_transactions",
+    "by_order",
+    "order_id",
     orderId
   );
-  cleanup.payment_events = await deleteRowsByOrderIndex(ctx, "payment_events", orderId);
-  cleanup.payment_intents = await deleteRowsByOrderIndex(ctx, "payment_intents", orderId);
-  cleanup.refunds = await deleteRowsByOrderIndex(ctx, "refunds", orderId);
+  cleanup.payment_events = await deleteRowsByOrderIndex(
+    ctx,
+    "payment_events",
+    "by_order",
+    "order_id",
+    orderId
+  );
+  cleanup.payment_intents = await deleteRowsByOrderIndex(
+    ctx,
+    "payment_intents",
+    "by_order",
+    "order_id",
+    orderId
+  );
+  cleanup.refunds = await deleteRowsByOrderIndex(
+    ctx,
+    "refunds",
+    "by_order",
+    "order_id",
+    orderId
+  );
   cleanup.stock_reservations = await deleteRowsByOrderIndex(
     ctx,
     "stock_reservations",
+    "by_order",
+    "order_id",
     orderId
   );
-  cleanup.shipment_events = await deleteRowsByOrderIndex(ctx, "shipment_events", orderId);
+  cleanup.shipment_events = await deleteRowsByOrderIndex(
+    ctx,
+    "shipment_events",
+    "by_order",
+    "order_id",
+    orderId
+  );
 
   const shipments = await ctx.db
     .query("shipments")

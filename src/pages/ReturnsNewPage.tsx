@@ -43,11 +43,11 @@ export default function ReturnsNewPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-1xl mx-auto space-y-6">
         <div className="bg-white border border-[#111]/10 p-6 space-y-4">
           <div>
             <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Returns</p>
-            <h1 className="font-display text-2xl mt-1">Start a Return</h1>
+            <h1 className="font-display text-xl mt-1">Start a Return</h1>
           </div>
 
           <form

@@ -35,6 +35,12 @@ export const mapProduct = (product: any): Product => ({
   care: product.care ?? [],
   sizes: product.sizes ?? [],
   inStock: product.in_stock,
+  stockQuantity:
+    typeof product.stock_quantity === "number"
+      ? product.stock_quantity
+      : product.in_stock === false
+      ? 0
+      : 1,
   sku: product.sku,
   isNewArrival: product.is_new_arrival,
   spotlightRank: product.spotlight_rank,

@@ -113,10 +113,10 @@ export default function AccountLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F2EE] text-[#111] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[#F6F2EE] text-[#111] flex items-center justify-center px-6 pt-20 lg:pt-24">
       <div className="w-full max-w-md bg-white border border-[#111]/10 p-8">
         <div className="mb-8 text-center">
-          <div className="font-display text-2xl tracking-[0.3em]">AYZAL</div>
+          <div className="font-display text-xl tracking-[0.3em]">AYZAL</div>
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E] mt-2">Customer Account</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

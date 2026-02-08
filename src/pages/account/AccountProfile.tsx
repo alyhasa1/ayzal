@@ -160,7 +160,7 @@ export default function AccountProfile() {
   };
 
   return (
-    <div className="max-w-3xl space-y-10">
+    <div className="max-w-1xl space-y-10">
       <div className="space-y-2">
         <h2 className="font-display text-xl">Profile</h2>
         {user?.email ? (

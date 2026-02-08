@@ -100,7 +100,7 @@ export default function SpotlightSection({ data }: { data?: any }) {
         </h2>
         <p
           ref={priceRef}
-          className="font-display text-xl md:text-2xl text-white/90 mb-8"
+          className="font-display text-xl md:text-xl text-white/90 mb-8"
         >
           {formatPrice(spotlightProduct.price)}
         </p>

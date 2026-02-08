@@ -53,6 +53,7 @@ export default defineSchema({
     sizes: v.optional(v.array(v.string())),
     sku: v.optional(v.string()),
     in_stock: v.optional(v.boolean()),
+    stock_quantity: v.optional(v.number()),
     is_new_arrival: v.optional(v.boolean()),
     spotlight_rank: v.optional(v.number()),
     meta_title: v.optional(v.string()),

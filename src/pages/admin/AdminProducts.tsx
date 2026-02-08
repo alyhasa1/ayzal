@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
+import { useAuthToken } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
 import { mapProduct } from '@/lib/mappers';
 import { formatPrice } from '@/lib/format';
-import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, ImageUp, Search } from 'lucide-react';
 import FormField, { fieldInputClass, fieldTextareaClass, fieldSelectClass } from '@/components/admin/FormField';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { useToast } from '@/components/admin/Toast';
@@ -24,7 +25,7 @@ const emptyForm = {
   primary_image_url: '',
   image_urls: '',
   category_id: '',
-  in_stock: true,
+  stock_quantity: 0,
   is_new_arrival: false,
   spotlight_rank: '',
   payment_method_ids: [] as string[],
@@ -39,6 +40,28 @@ function parseTagDraft(value: string) {
     .split(/[\n,]+/)
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
+}
+
+function normalizeStockQuantity(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.floor(parsed));
+}
+
+function sanitizeUploadSegment(value: string) {
+  const sanitized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return sanitized || 'draft';
+}
+
+function productStockQuantity(product: any) {
+  if (typeof product?.stockQuantity === 'number') {
+    return Math.max(0, Math.floor(product.stockQuantity));
+  }
+  return product?.inStock === false ? 0 : 1;
 }
 
 function ImagePreview({ url, alt }: { url: string; alt?: string }) {
@@ -92,6 +115,7 @@ export default function AdminProducts() {
   const productsRawQuery = useQuery(api.products.list);
   const categories = useQuery(api.categories.list) ?? [];
   const paymentMethods = useQuery(api.paymentMethods.list) ?? [];
+  const authToken = useAuthToken();
   const createProduct = useMutation(api.products.create);
   const updateProduct = useMutation(api.products.update);
   const setProductTags = useMutation(api.products.setTags);
@@ -103,6 +127,10 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [primaryUploadFile, setPrimaryUploadFile] = useState<File | null>(null);
+  const [additionalUploadFile, setAdditionalUploadFile] = useState<File | null>(null);
+  const [primaryUploading, setPrimaryUploading] = useState(false);
+  const [additionalUploading, setAdditionalUploading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -122,9 +150,9 @@ export default function AdminProducts() {
       list = list.filter((p) => p.categoryId === filterCategory);
     }
     if (filterStock === 'in') {
-      list = list.filter((p) => p.inStock !== false);
+      list = list.filter((p) => productStockQuantity(p) > 0);
     } else if (filterStock === 'out') {
-      list = list.filter((p) => p.inStock === false);
+      list = list.filter((p) => productStockQuantity(p) <= 0);
     }
     return list;
   }, [products, searchQuery, filterCategory, filterStock]);
@@ -132,6 +160,85 @@ export default function AdminProducts() {
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setPrimaryUploadFile(null);
+    setAdditionalUploadFile(null);
+    setPrimaryUploading(false);
+    setAdditionalUploading(false);
+  };
+
+  const uploadProductImage = async (file: File, fieldPath: string) => {
+    const uploadFormData = new FormData();
+    uploadFormData.set('file', file, file.name);
+    uploadFormData.set('section_key', 'products');
+    uploadFormData.set('field_path', fieldPath);
+    uploadFormData.set(
+      'folder',
+      `products/${sanitizeUploadSegment(form.slug || form.name || 'draft')}`
+    );
+
+    const response = await fetch('/api/admin/upload-image', {
+      method: 'POST',
+      headers: authToken
+        ? {
+            Authorization: `Bearer ${authToken}`,
+          }
+        : undefined,
+      body: uploadFormData,
+    });
+
+    const payload = await response.json().catch(() => ({} as any));
+    if (!response.ok || !payload?.ok || typeof payload?.url !== 'string') {
+      throw new Error(payload?.error ?? 'Image upload failed');
+    }
+
+    return String(payload.url);
+  };
+
+  const handleUploadPrimaryImage = async () => {
+    if (!primaryUploadFile) {
+      toast('Choose a primary image file first', 'error');
+      return;
+    }
+
+    setPrimaryUploading(true);
+    try {
+      const url = await uploadProductImage(primaryUploadFile, 'primary_image_url');
+      setForm((prev) => ({ ...prev, primary_image_url: url }));
+      setPrimaryUploadFile(null);
+      toast('Primary image uploaded');
+    } catch (error: any) {
+      toast(error?.message ?? 'Primary image upload failed', 'error');
+    } finally {
+      setPrimaryUploading(false);
+    }
+  };
+
+  const handleUploadAdditionalImage = async () => {
+    if (!additionalUploadFile) {
+      toast('Choose an additional image file first', 'error');
+      return;
+    }
+
+    setAdditionalUploading(true);
+    try {
+      const url = await uploadProductImage(additionalUploadFile, 'image_urls');
+      setForm((prev) => {
+        const lines = prev.image_urls
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean);
+        if (!lines.includes(url)) {
+          lines.push(url);
+        }
+        return { ...prev, image_urls: lines.join('\n') };
+      });
+      setAdditionalUploadFile(null);
+      toast('Additional image uploaded');
+    } catch (error: any) {
+      toast(error?.message ?? 'Additional image upload failed', 'error');
+    } finally {
+      setAdditionalUploading(false);
+    }
   };
 
   const handleEdit = (product: any) => {
@@ -152,7 +259,7 @@ export default function AdminProducts() {
       primary_image_url: product.image ?? '',
       image_urls: product.images?.join('\n') ?? '',
       category_id: product.categoryId ?? '',
-      in_stock: product.inStock ?? true,
+      stock_quantity: productStockQuantity(product),
       is_new_arrival: product.isNewArrival ?? false,
       spotlight_rank: product.spotlightRank ? String(product.spotlightRank) : '',
       payment_method_ids: product.paymentMethods?.map((method: any) => method.id) ?? [],
@@ -166,6 +273,12 @@ export default function AdminProducts() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const stockQuantity = normalizeStockQuantity(form.stock_quantity);
+    if (!Number.isFinite(stockQuantity) || stockQuantity < 0) {
+      toast('Stock quantity must be zero or greater', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {
@@ -186,7 +299,8 @@ export default function AdminProducts() {
         primary_image_url: form.primary_image_url,
         image_urls: form.image_urls ? form.image_urls.split('\n').map((item) => item.trim()).filter(Boolean) : undefined,
         category_id: form.category_id as any,
-        in_stock: form.in_stock,
+        stock_quantity: stockQuantity,
+        in_stock: stockQuantity > 0,
         is_new_arrival: form.is_new_arrival,
         spotlight_rank: form.spotlight_rank ? Number(form.spotlight_rank) : undefined,
         payment_method_ids: form.payment_method_ids as any,
@@ -289,7 +403,8 @@ export default function AdminProducts() {
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-xs text-[#6E6E6E]">{product.category}</span>
                   <span className="text-xs font-medium">{formatPrice(product.price)}</span>
-                  {product.inStock === false ? (
+                  <span className="text-xs text-[#6E6E6E]">Stock: {productStockQuantity(product)}</span>
+                  {productStockQuantity(product) <= 0 ? (
                     <span className="text-[10px] uppercase tracking-widest px-1.5 py-0.5 bg-red-50 text-red-600 border border-red-100">
                       Out of stock
                     </span>
@@ -382,6 +497,26 @@ export default function AdminProducts() {
                 className={fieldInputClass}
                 required
               />
+              <div className="mt-2 space-y-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] ?? null;
+                    setPrimaryUploadFile(nextFile);
+                  }}
+                  className="w-full border border-[#111]/10 bg-white px-3 py-2 text-xs file:mr-3 file:border-0 file:bg-[#111]/5 file:px-3 file:py-1.5 file:text-xs file:uppercase file:tracking-widest"
+                />
+                <button
+                  type="button"
+                  className="w-full inline-flex items-center justify-center gap-2 border border-[#111]/10 bg-[#F8F6F3] px-3 py-2 text-xs uppercase tracking-widest hover:border-[#D4A05A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={handleUploadPrimaryImage}
+                  disabled={primaryUploading || !primaryUploadFile}
+                >
+                  <ImageUp className="w-3.5 h-3.5" />
+                  {primaryUploading ? 'Uploading primary image...' : 'Upload primary image'}
+                </button>
+              </div>
               <ImagePreview url={form.primary_image_url} alt="Primary" />
             </FormField>
             <FormField label="Additional Image URLs" hint="One URL per line">
@@ -390,6 +525,26 @@ export default function AdminProducts() {
                 onChange={(e) => setForm({ ...form, image_urls: e.target.value })}
                 className={`${fieldTextareaClass} min-h-16`}
               />
+              <div className="mt-2 space-y-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] ?? null;
+                    setAdditionalUploadFile(nextFile);
+                  }}
+                  className="w-full border border-[#111]/10 bg-white px-3 py-2 text-xs file:mr-3 file:border-0 file:bg-[#111]/5 file:px-3 file:py-1.5 file:text-xs file:uppercase file:tracking-widest"
+                />
+                <button
+                  type="button"
+                  className="w-full inline-flex items-center justify-center gap-2 border border-[#111]/10 bg-[#F8F6F3] px-3 py-2 text-xs uppercase tracking-widest hover:border-[#D4A05A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={handleUploadAdditionalImage}
+                  disabled={additionalUploading || !additionalUploadFile}
+                >
+                  <ImageUp className="w-3.5 h-3.5" />
+                  {additionalUploading ? 'Uploading gallery image...' : 'Upload additional image'}
+                </button>
+              </div>
               {form.image_urls && (
                 <div className="flex gap-1.5 mt-1.5 flex-wrap">
                   {form.image_urls
@@ -486,15 +641,30 @@ export default function AdminProducts() {
                 ))}
               </select>
             </FormField>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-xs uppercase tracking-widest">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <FormField
+                label="Stock Quantity"
+                required
+                hint="How many units are currently available for this product."
+              >
                 <input
-                  type="checkbox"
-                  checked={form.in_stock}
-                  onChange={(e) => setForm({ ...form, in_stock: e.target.checked })}
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={form.stock_quantity}
+                  onChange={(e) => setForm({ ...form, stock_quantity: normalizeStockQuantity(e.target.value) })}
+                  className={fieldInputClass}
+                  required
                 />
-                In stock
-              </label>
+              </FormField>
+              <div className="text-xs text-[#6E6E6E] flex items-center">
+                Status:{" "}
+                <span className={`ml-1 font-medium ${normalizeStockQuantity(form.stock_quantity) > 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                  {normalizeStockQuantity(form.stock_quantity) > 0 ? 'In stock' : 'Out of stock'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-xs uppercase tracking-widest">
                 <input
                   type="checkbox"

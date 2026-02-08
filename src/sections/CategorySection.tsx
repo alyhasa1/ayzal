@@ -83,7 +83,7 @@ export default function CategorySection({ data }: { data?: any }) {
           <div
             key={category.name}
             ref={(el) => { panelsRef.current[index] = el; }}
-            className={`category-panel relative overflow-hidden w-full h-[32vh] rounded-2xl shadow-lg md:h-full md:flex-1 md:rounded-none md:shadow-none ${
+            className={`category-panel relative overflow-hidden w-full h-[32vh] rounded-xl shadow-lg md:h-full md:flex-1 md:rounded-none md:shadow-none ${
               index === 0 ? 'md:w-[34vw]' : index === 1 ? 'md:w-[34vw]' : 'md:w-[32vw]'
             }`}
           >
@@ -99,7 +99,7 @@ export default function CategorySection({ data }: { data?: any }) {
               ref={(el) => { labelsRef.current[index] = el; }}
               className="absolute inset-0 z-[3] flex flex-col items-center justify-center text-white"
             >
-              <h3 className="panel-label headline-lg text-2xl md:text-3xl lg:text-4xl mb-4 text-center">
+              <h3 className="panel-label headline-lg text-xl md:text-1xl lg:text-4xl mb-4 text-center">
                 {category.name}
               </h3>
               <button

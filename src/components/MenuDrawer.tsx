@@ -91,7 +91,7 @@ export default function MenuDrawer({ isOpen, onClose, categories = [] }: MenuDra
                 >
                   <button
                     onClick={() => handleClick(item.href)}
-                    className="font-display text-2xl lg:text-3xl font-semibold text-[#111] hover:text-[#D4A05A] transition-colors tracking-wider uppercase"
+                    className="font-display text-xl lg:text-1xl font-semibold text-[#111] hover:text-[#D4A05A] transition-colors tracking-wider uppercase"
                   >
                     {item.label}
                   </button>
@@ -109,8 +109,8 @@ export default function MenuDrawer({ isOpen, onClose, categories = [] }: MenuDra
             }}
           >
             <p className="label-text text-[#6E6E6E] mb-2">Customer Service</p>
-            <p className="text-sm text-[#111]">hello@ayzal.pk</p>
-            <p className="text-sm text-[#111]">+92 300 1234567</p>
+            <p className="text-sm text-[#111]">hello@ayzalcollections.com</p>
+            <p className="text-sm text-[#111]">+92 326 49 80 404</p>
           </div>
         </div>
       </div>

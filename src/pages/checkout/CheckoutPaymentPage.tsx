@@ -6,6 +6,7 @@ import { useGuestToken } from "@/hooks/useGuestToken";
 import CheckoutShell from "./CheckoutShell";
 import { promoCodeSchema } from "@/lib/validation";
 import { formatPrice } from "@/lib/format";
+import BrandLoader from "@/components/BrandLoader";
 
 export default function CheckoutPaymentPage() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export default function CheckoutPaymentPage() {
   }, [selectedMethod, activeMethods]);
 
   if (!guestToken || cart === undefined) {
-    return <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">Loading checkout...</div>;
+    return <BrandLoader label="Loading checkout..." />;
   }
 
   if (!cart || (cart.items ?? []).length === 0) {
@@ -89,7 +90,7 @@ export default function CheckoutPaymentPage() {
           }
         }}
       >
-        <h1 className="font-display text-2xl">Payment</h1>
+        <h1 className="font-display text-xl">Payment</h1>
         <p className="text-sm text-[#6E6E6E]">
           COD is available nationwide. Local online rails can be enabled later without changing this flow.
         </p>

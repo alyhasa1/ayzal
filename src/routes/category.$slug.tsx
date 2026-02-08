@@ -119,7 +119,7 @@ export default function CategoryRoute() {
         <div className="shop-shell">
           <p className="eyebrow text-[#6E6E6E] mb-2">Category</p>
           <h1 className="font-display text-[var(--font-display-tight)] text-[#111]">{category.name}</h1>
-          <p className="support-copy mt-3 max-w-2xl">
+          <p className="support-copy mt-3 max-w-xl">
             Discover curated {category.name} looks including Pakistani dresses, lawn, and
             unstitched styles. Every listing is optimized for fast decision making.
           </p>

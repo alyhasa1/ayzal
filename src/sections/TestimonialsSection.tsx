@@ -90,7 +90,7 @@ export default function TestimonialsSection({ data }: { data?: any }) {
         {/* Title */}
         <h2
           ref={titleRef}
-          className="headline-lg text-2xl md:text-3xl lg:text-4xl text-[#111] mb-12"
+          className="headline-lg text-xl md:text-1xl lg:text-4xl text-[#111] mb-12"
         >
           Loved by Many
         </h2>
@@ -125,15 +125,15 @@ export default function TestimonialsSection({ data }: { data?: any }) {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 pt-8 border-t border-[#111]/8">
               <div>
-                <p className="font-display text-3xl font-bold text-[#D4A05A]">10K+</p>
+                <p className="font-display text-1xl font-bold text-[#D4A05A]">10K+</p>
                 <p className="label-text text-[#6E6E6E] mt-1">Happy Customers</p>
               </div>
               <div>
-                <p className="font-display text-3xl font-bold text-[#D4A05A]">500+</p>
+                <p className="font-display text-1xl font-bold text-[#D4A05A]">500+</p>
                 <p className="label-text text-[#6E6E6E] mt-1">Designs</p>
               </div>
               <div>
-                <p className="font-display text-3xl font-bold text-[#D4A05A]">50+</p>
+                <p className="font-display text-1xl font-bold text-[#D4A05A]">50+</p>
                 <p className="label-text text-[#6E6E6E] mt-1">Artisans</p>
               </div>
             </div>

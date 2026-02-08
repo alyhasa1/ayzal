@@ -106,7 +106,7 @@ export default function SearchRoute() {
           <h1 className="font-display text-[var(--font-display-tight)] text-[#111]">
             Find your next favorite look
           </h1>
-          <p className="support-copy max-w-3xl">
+          <p className="support-copy max-w-1xl">
             Search by style, fabric, occasion or SKU. Filters update instantly so customers can
             reach checkout with less friction.
           </p>
@@ -209,7 +209,7 @@ export default function SearchRoute() {
           </div>
 
           {data.suggestions.hints?.length > 0 ? (
-            <div className="rounded-2xl border border-[#111]/10 bg-white/70 p-4">
+            <div className="rounded-xl border border-[#111]/10 bg-white/70 p-4">
               <p className="eyebrow mb-2 text-[#6E6E6E]">Try quick filters</p>
               <div className="flex flex-wrap gap-2">
                 {data.suggestions.hints.slice(0, 8).map((hint: string) => (

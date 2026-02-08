@@ -20,10 +20,10 @@ export default function ReturnDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-1xl mx-auto space-y-6">
         <div className="bg-white border border-[#111]/10 p-6 space-y-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Return Tracking</p>
-          <h1 className="font-display text-2xl">Return Request</h1>
+          <h1 className="font-display text-xl">Return Request</h1>
           <form
             className="flex gap-2"
             onSubmit={(event) => {

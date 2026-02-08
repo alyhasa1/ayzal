@@ -94,8 +94,8 @@ export default function FooterSection({ data }: { data?: any }) {
   const companyLinks = resolveLinks(footerLinks.company, defaultLinks.company);
 
   const brandName = settings.brand_name ?? 'AYZAL';
-  const contactEmail = settings.contact_email ?? 'hello@ayzal.pk';
-  const contactPhone = settings.contact_phone ?? '+92 300 1234567';
+  const contactEmail = settings.contact_email ?? 'hello@ayzalcollections.com';
+  const contactPhone = settings.contact_phone ?? '+92 326 49 80 404';
   const contactLocation = settings.contact_location ?? 'Lahore, Pakistan';
   const instagram = settings.social_links?.instagram ?? '#';
   const facebook = settings.social_links?.facebook ?? '#';

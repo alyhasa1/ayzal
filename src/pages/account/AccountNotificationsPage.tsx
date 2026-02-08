@@ -81,7 +81,7 @@ export default function AccountNotificationsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="font-display text-2xl">Notification Preferences</h2>
+        <h2 className="font-display text-xl">Notification Preferences</h2>
         <p className="text-sm text-[#6E6E6E]">
           Control which updates you receive and review your recent notification activity.
         </p>

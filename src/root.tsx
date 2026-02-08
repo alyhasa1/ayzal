@@ -21,6 +21,7 @@ import { CartProvider } from "@/hooks/useCart";
 import Navigation from "@/components/Navigation";
 import MenuDrawer from "@/components/MenuDrawer";
 import CartDrawer from "@/components/CartDrawer";
+import WhatsAppBubble from "@/components/WhatsAppBubble";
 import { createConvexClient, getConvexUrl } from "@/lib/convex.server";
 import { parseRedirectRules, resolveRedirect, shouldSkipRedirect } from "@/lib/redirects";
 import indexStyles from "./index.css";
@@ -81,6 +82,7 @@ export const loader = async ({ context, request }: LoaderFunctionArgs) => {
     }
   }
   const categories = await convex.query(api.categories.list);
+  const freeShippingPolicy = await convex.query(api.shipping.getFreeShippingPolicy, {});
 
   return json({
     settings: settings?.data ?? {},
@@ -88,6 +90,7 @@ export const loader = async ({ context, request }: LoaderFunctionArgs) => {
       name: category.name,
       slug: category.slug,
     })),
+    freeShippingPolicy,
     ENV: {
       CONVEX_URL: convexUrl,
     },
@@ -127,7 +130,7 @@ export const headers: HeadersFunction = () => {
 };
 
 export default function App() {
-  const { categories, ENV, settings } = useLoaderData<typeof loader>();
+  const { categories, ENV, settings, freeShippingPolicy } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const brandName = settings?.brand_name ?? "Ayzal Collections";
@@ -136,8 +139,7 @@ export default function App() {
     .filter((value): value is string => typeof value === "string" && /^https?:\/\//.test(value));
 
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isAccountRoute = location.pathname.startsWith("/account");
-  const showStoreNav = !isAdminRoute && !isAccountRoute;
+  const showStoreNav = !isAdminRoute;
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -188,7 +190,8 @@ export default function App() {
                   onClose={() => setIsMenuOpen(false)}
                   categories={categories}
                 />
-                <CartDrawer />
+                <CartDrawer freeShippingThreshold={freeShippingPolicy?.threshold} />
+                <WhatsAppBubble />
               </>
             )}
             <main className="relative">

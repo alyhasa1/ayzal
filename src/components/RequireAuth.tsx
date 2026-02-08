@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from '@remix-run/react';
 import { useConvexAuth } from 'convex/react';
+import BrandLoader from '@/components/BrandLoader';
 
 export default function RequireAuth({
   children,
@@ -13,11 +14,7 @@ export default function RequireAuth({
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F6F2EE] text-[#111]">
-        Loading...
-      </div>
-    );
+    return <BrandLoader label="Checking your account..." />;
   }
 
   if (!isAuthenticated) {

@@ -9,7 +9,7 @@ export default function AccountReturnsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-display text-2xl">My Returns</h2>
+        <h2 className="font-display text-xl">My Returns</h2>
         <Link to="/returns/new" className="btn-primary text-xs px-4 py-2">
           Start Return
         </Link>

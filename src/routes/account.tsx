@@ -2,6 +2,7 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 import AccountLayout from "@/pages/account/AccountLayout";
 import RequireAuth from "@/components/RequireAuth";
 import ClientConvexProvider from "@/components/ClientConvexProvider";
+import BrandLoader from "@/components/BrandLoader";
 import { Outlet, useLocation } from "@remix-run/react";
 
 export const meta: MetaFunction = () => [
@@ -13,7 +14,7 @@ export default function AccountRoute() {
   const isLoginRoute = location.pathname === "/account/login";
 
   return (
-    <ClientConvexProvider fallback={<div className="min-h-screen bg-[#F6F2EE]" />}>
+    <ClientConvexProvider fallback={<BrandLoader label="Loading account space..." />}>
       {isLoginRoute ? (
         <Outlet />
       ) : (

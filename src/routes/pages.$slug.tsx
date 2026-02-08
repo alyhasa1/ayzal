@@ -62,14 +62,14 @@ export default function ContentPageRoute() {
   return (
     <div className="min-h-screen bg-[#F6F2EE]">
       <section className="pt-24 pb-8 px-6 lg:px-12">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-1xl mx-auto space-y-4">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Information</p>
-          <h1 className="font-display text-3xl md:text-5xl text-[#111] leading-tight">{page.title}</h1>
+          <h1 className="font-display text-1xl md:text-5xl text-[#111] leading-tight">{page.title}</h1>
         </div>
       </section>
 
       <section className="px-6 lg:px-12 pb-20">
-        <article className="max-w-3xl mx-auto bg-white border border-[#111]/10 p-6 md:p-8 space-y-5">
+        <article className="max-w-1xl mx-auto bg-white border border-[#111]/10 p-6 md:p-8 space-y-5">
           {sections.length > 0 ? (
             sections.map((section, index) => (
               <p key={`${page.slug}-${index}`} className="text-[15px] leading-7 text-[#2D2D2D] whitespace-pre-line">

@@ -50,10 +50,10 @@ export default function BlogIndexRoute() {
       <section className="pt-24 pb-8 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto space-y-4">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Ayzal Journal</p>
-          <h1 className="font-display text-3xl md:text-5xl text-[#111]">
+          <h1 className="font-display text-1xl md:text-5xl text-[#111]">
             Content built for conversion and confidence
           </h1>
-          <p className="text-sm text-[#6E6E6E] max-w-3xl">
+          <p className="text-sm text-[#6E6E6E] max-w-1xl">
             Browse styling guides, launch stories, and care notes that help customers buy with
             confidence.
           </p>
@@ -64,7 +64,7 @@ export default function BlogIndexRoute() {
         <div className="max-w-6xl mx-auto">
           {data.posts.length === 0 ? (
             <div className="bg-white border border-[#111]/10 p-8 text-center space-y-3">
-              <h2 className="font-display text-2xl text-[#111]">Journal content coming soon</h2>
+              <h2 className="font-display text-xl text-[#111]">Journal content coming soon</h2>
               <p className="text-sm text-[#6E6E6E]">
                 Add blog posts in Admin Settings to publish your first SEO article.
               </p>
@@ -77,7 +77,7 @@ export default function BlogIndexRoute() {
               {data.posts.map((post) => (
                 <article
                   key={post.slug}
-                  className="rounded-2xl border border-[#111]/10 bg-white/90 overflow-hidden shadow-sm"
+                  className="rounded-xl border border-[#111]/10 bg-white/90 overflow-hidden shadow-sm"
                 >
                   {post.cover_image ? (
                     <Link to={`/blog/${post.slug}`} className="block">
@@ -93,7 +93,7 @@ export default function BlogIndexRoute() {
                     <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">
                       {formatPublishedDate(post.published_at)} by {post.author || "Ayzal Editorial"}
                     </p>
-                    <h2 className="font-display text-2xl text-[#111] leading-tight">
+                    <h2 className="font-display text-xl text-[#111] leading-tight">
                       <Link to={`/blog/${post.slug}`} className="hover:text-[#D4A05A] transition-colors">
                         {post.title}
                       </Link>

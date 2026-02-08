@@ -3,6 +3,30 @@ import { v } from "convex/values";
 import { requirePermission } from "./lib/auth";
 import { recordAudit } from "./lib/audit";
 
+async function syncProductStockFromInventory(ctx: any, productId: any) {
+  const variants = await ctx.db
+    .query("product_variants")
+    .withIndex("by_product", (q: any) => q.eq("product_id", productId))
+    .collect();
+
+  let totalSellable = 0;
+  for (const variant of variants) {
+    const levels = await ctx.db
+      .query("inventory_levels")
+      .withIndex("by_variant", (q: any) => q.eq("variant_id", variant._id))
+      .collect();
+    for (const level of levels) {
+      totalSellable += Math.max(0, (level.available ?? 0) - (level.reserved ?? 0));
+    }
+  }
+
+  await ctx.db.patch(productId, {
+    stock_quantity: totalSellable,
+    in_stock: totalSellable > 0,
+    updated_at: Date.now(),
+  });
+}
+
 export const adminListOverview = query({
   handler: async (ctx) => {
     await requirePermission(ctx, "inventory.read");
@@ -232,6 +256,10 @@ export const adminSetLevel = mutation({
         before,
         after,
       });
+      const variant = await ctx.db.get(args.variant_id);
+      if (variant?.product_id) {
+        await syncProductStockFromInventory(ctx, variant.product_id);
+      }
       return existing._id;
     }
 
@@ -252,6 +280,10 @@ export const adminSetLevel = mutation({
       entity_id: String(id),
       after: args,
     });
+    const variant = await ctx.db.get(args.variant_id);
+    if (variant?.product_id) {
+      await syncProductStockFromInventory(ctx, variant.product_id);
+    }
     return id;
   },
 });

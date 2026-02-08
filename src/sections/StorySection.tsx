@@ -87,7 +87,7 @@ export default function StorySection({ data }: { data?: StoryData }) {
         </h2>
         <p
           ref={bodyRef}
-          className="font-body text-base md:text-lg text-white/90 max-w-2xl"
+          className="font-body text-base md:text-lg text-white/90 max-w-xl"
         >
           {content.body}
         </p>

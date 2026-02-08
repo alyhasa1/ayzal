@@ -56,11 +56,11 @@ export default function SupportTicketDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">
-      <div className="max-w-3xl mx-auto space-y-5">
+      <div className="max-w-1xl mx-auto space-y-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Support</p>
-            <h1 className="font-display text-2xl mt-1">Ticket Detail</h1>
+            <h1 className="font-display text-xl mt-1">Ticket Detail</h1>
           </div>
           <Link to="/support" className="text-xs uppercase tracking-widest underline">
             Back to support

@@ -1,5 +1,6 @@
 import type { MetaFunction } from "@remix-run/cloudflare";
 import ClientConvexProvider from "@/components/ClientConvexProvider";
+import BrandLoader from "@/components/BrandLoader";
 import { Navigate, Outlet, useLocation } from "@remix-run/react";
 
 export const meta: MetaFunction = () => [
@@ -9,7 +10,7 @@ export const meta: MetaFunction = () => [
 export default function CheckoutRoute() {
   const location = useLocation();
   return (
-    <ClientConvexProvider fallback={<div className="min-h-screen bg-[#F6F2EE]" />}>
+    <ClientConvexProvider fallback={<BrandLoader label="Preparing checkout..." />}>
       {location.pathname === "/checkout" ? (
         <Navigate to="/checkout/information" replace />
       ) : (

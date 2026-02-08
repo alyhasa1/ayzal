@@ -80,23 +80,23 @@ export default function AdminSupport() {
       <section className="grid grid-cols-2 xl:grid-cols-6 gap-3">
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Total</p>
-          <p className="font-display text-2xl">{summary?.total ?? "-"}</p>
+          <p className="font-display text-xl">{summary?.total ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Unresolved</p>
-          <p className="font-display text-2xl">{summary?.unresolved ?? "-"}</p>
+          <p className="font-display text-xl">{summary?.unresolved ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Overdue SLA</p>
-          <p className="font-display text-2xl">{summary?.overdue ?? "-"}</p>
+          <p className="font-display text-xl">{summary?.overdue ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Unassigned</p>
-          <p className="font-display text-2xl">{summary?.unassigned ?? "-"}</p>
+          <p className="font-display text-xl">{summary?.unassigned ?? "-"}</p>
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Median First Response</p>
-          <p className="font-display text-2xl">
+          <p className="font-display text-xl">
             {summary?.first_response_median_minutes !== null &&
             summary?.first_response_median_minutes !== undefined
               ? `${summary.first_response_median_minutes}m`
@@ -105,7 +105,7 @@ export default function AdminSupport() {
         </div>
         <div className="bg-white border border-[#111]/10 p-3">
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Showing</p>
-          <p className="font-display text-2xl">{tickets.length}</p>
+          <p className="font-display text-xl">{tickets.length}</p>
         </div>
       </section>
 

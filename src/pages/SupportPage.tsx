@@ -80,7 +80,7 @@ export default function SupportPage() {
         >
           <div>
             <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Support</p>
-            <h1 className="font-display text-2xl mt-1">Need Help?</h1>
+            <h1 className="font-display text-xl mt-1">Need Help?</h1>
           </div>
 
           <div className="space-y-1">

@@ -6,6 +6,7 @@ import { useGuestToken } from "@/hooks/useGuestToken";
 import CheckoutShell from "./CheckoutShell";
 import { contactSchema } from "@/lib/validation";
 import { useCart } from "@/hooks/useCart";
+import BrandLoader from "@/components/BrandLoader";
 
 export default function CheckoutInformationPage() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export default function CheckoutInformationPage() {
   }, [cart]);
 
   if (!guestToken || cart === undefined) {
-    return <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">Loading checkout...</div>;
+    return <BrandLoader label="Loading checkout..." />;
   }
 
   if (!cart || (cart.items ?? []).length === 0) {
@@ -107,7 +108,7 @@ export default function CheckoutInformationPage() {
           }
         }}
       >
-        <h1 className="font-display text-2xl">Contact Information</h1>
+        <h1 className="font-display text-xl">Contact Information</h1>
         <p className="text-sm text-[#6E6E6E]">
           We use these details for order confirmation and delivery updates only.
         </p>

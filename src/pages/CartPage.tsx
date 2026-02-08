@@ -1,14 +1,16 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "@remix-run/react";
+import { Link, useMatches, useNavigate } from "@remix-run/react";
 import { Minus, Plus, ShieldCheck, Sparkles, Trash2, Truck } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useGuestToken } from "@/hooks/useGuestToken";
+import BrandLoader from "@/components/BrandLoader";
 import { formatPrice } from "@/lib/format";
 import { getFreeShippingState, pickCrossSellCandidates, toIdSet } from "@/lib/commerce";
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const matches = useMatches();
   const guestToken = useGuestToken();
   const getOrCreateCart = useMutation(api.cart.getOrCreate);
   const updateItem = useMutation(api.cart.updateItem);
@@ -23,7 +25,18 @@ export default function CartPage() {
   });
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
 
-  const freeShipping = getFreeShippingState(cart?.subtotal ?? 0, 15000);
+  const rootData = matches.find((match) => match.id === "root")?.data as
+    | {
+        freeShippingPolicy?: {
+          threshold?: number;
+        } | null;
+      }
+    | undefined;
+  const freeShippingThreshold = rootData?.freeShippingPolicy?.threshold;
+  const freeShipping =
+    typeof freeShippingThreshold === "number" && freeShippingThreshold > 0
+      ? getFreeShippingState(cart?.subtotal ?? 0, freeShippingThreshold)
+      : null;
 
   const suggestions = useMemo(() => {
     const products = suggestionsResult?.products ?? [];
@@ -43,7 +56,7 @@ export default function CartPage() {
   }, [guestToken, getOrCreateCart]);
 
   if (!guestToken || cart === undefined) {
-    return <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">Loading cart...</div>;
+    return <BrandLoader label="Loading your bag..." />;
   }
 
   return (
@@ -51,7 +64,7 @@ export default function CartPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Your Bag</p>
-          <h1 className="font-display text-3xl mt-1">Cart</h1>
+          <h1 className="font-display text-1xl mt-1">Cart</h1>
         </div>
 
         {!cart || (cart.items ?? []).length === 0 ? (
@@ -63,22 +76,24 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="rounded-xl border border-[#D4A05A]/30 bg-[#fff7ec] px-4 py-3">
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <p className="text-[#7a5a2c]">
-                  {!freeShipping.unlocked
-                    ? `Add ${formatPrice(freeShipping.remaining)} more for free shipping`
-                    : "You unlocked free shipping"}
-                </p>
-                <p className="text-[#7a5a2c] font-medium">{freeShipping.progress}%</p>
+            {freeShipping ? (
+              <div className="rounded-xl border border-[#D4A05A]/30 bg-[#fff7ec] px-4 py-3">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <p className="text-[#7a5a2c]">
+                    {!freeShipping.unlocked
+                      ? `Add ${formatPrice(freeShipping.remaining)} more for free shipping`
+                      : "You unlocked free shipping"}
+                  </p>
+                  <p className="text-[#7a5a2c] font-medium">{freeShipping.progress}%</p>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-[#e9d9bf] overflow-hidden">
+                  <div
+                    className="h-full bg-[#D4A05A] transition-all duration-500"
+                    style={{ width: `${freeShipping.progress}%` }}
+                  />
+                </div>
               </div>
-              <div className="mt-2 h-2 rounded-full bg-[#e9d9bf] overflow-hidden">
-                <div
-                  className="h-full bg-[#D4A05A] transition-all duration-500"
-                  style={{ width: `${freeShipping.progress}%` }}
-                />
-              </div>
-            </div>
+            ) : null}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_0.4fr] gap-6">
               <div className="bg-white border border-[#111]/10 divide-y divide-[#111]/10">

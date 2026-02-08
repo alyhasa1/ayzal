@@ -62,11 +62,11 @@ export default function TrackOrderPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F2EE] px-6 py-20">
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-1xl mx-auto space-y-6">
         <div className="bg-white border border-[#111]/10 p-6 space-y-4">
           <div>
             <p className="text-xs uppercase tracking-widest text-[#6E6E6E]">Order Tracking</p>
-            <h1 className="font-display text-2xl mt-1">Track Your Order</h1>
+            <h1 className="font-display text-xl mt-1">Track Your Order</h1>
             <p className="text-sm text-[#6E6E6E] mt-2">
               Verify with your order email or phone to view the latest timeline.
             </p>
