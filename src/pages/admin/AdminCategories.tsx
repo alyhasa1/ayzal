@@ -1,12 +1,29 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
+import { useAuthToken } from '@convex-dev/auth/react';
+import { ImageUp } from 'lucide-react';
 import { api } from '../../../convex/_generated/api';
 import FormField, { fieldInputClass, fieldSelectClass } from '@/components/admin/FormField';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { useToast } from '@/components/admin/Toast';
 
+function sanitizeUploadSegment(value: string) {
+  const sanitized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return sanitized || 'draft';
+}
+
+function isLikelyImageUrl(value: string) {
+  const candidate = value.trim();
+  return /^https?:\/\//i.test(candidate) || candidate.startsWith('/');
+}
+
 export default function AdminCategories() {
   const categories = useQuery(api.categories.listWithCounts) ?? [];
+  const authToken = useAuthToken();
   const createCategory = useMutation(api.categories.create);
   const updateCategory = useMutation(api.categories.update);
   const removeCategory = useMutation(api.categories.remove);
@@ -16,23 +33,89 @@ export default function AdminCategories() {
   const [imageUrl, setImageUrl] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; productCount: number } | null>(null);
   const [reassignId, setReassignId] = useState<string>('');
+
+  const uploadCategoryImage = async (file: File) => {
+    const uploadFormData = new FormData();
+    uploadFormData.set('file', file, file.name);
+    uploadFormData.set('section_key', 'categories');
+    uploadFormData.set('field_path', 'image_url');
+    uploadFormData.set('folder', `categories/${sanitizeUploadSegment(name || 'draft')}`);
+
+    const response = await fetch('/api/admin/upload-image', {
+      method: 'POST',
+      headers: authToken
+        ? {
+            Authorization: `Bearer ${authToken}`,
+          }
+        : undefined,
+      body: uploadFormData,
+    });
+
+    const payload = await response.json().catch(() => ({} as any));
+    if (!response.ok || !payload?.ok || typeof payload?.url !== 'string') {
+      throw new Error(payload?.error ?? 'Image upload failed');
+    }
+
+    return String(payload.url);
+  };
+
+  const handleUploadCategoryImage = async () => {
+    if (!uploadFile) {
+      toast('Choose a category image first', 'error');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const url = await uploadCategoryImage(uploadFile);
+      setImageUrl(url);
+      setUploadFile(null);
+      toast('Category image uploaded');
+    } catch (error: any) {
+      toast(error?.message ?? 'Category image upload failed', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
     try {
+      let resolvedImageUrl = imageUrl.trim();
+
+      if (uploadFile) {
+        setUploading(true);
+        try {
+          resolvedImageUrl = await uploadCategoryImage(uploadFile);
+          setUploadFile(null);
+        } finally {
+          setUploading(false);
+        }
+      }
+
+      if (!resolvedImageUrl) {
+        throw new Error('Category image is required. Upload an image or paste a URL.');
+      }
+      if (!isLikelyImageUrl(resolvedImageUrl)) {
+        throw new Error('Image URL is invalid. Use an absolute URL or a path that starts with /.');
+      }
+
       if (editId) {
-        await updateCategory({ id: editId as any, name, image_url: imageUrl });
+        await updateCategory({ id: editId as any, name, image_url: resolvedImageUrl });
         toast('Category updated');
         setEditId(null);
       } else {
-        await createCategory({ name, image_url: imageUrl });
+        await createCategory({ name, image_url: resolvedImageUrl });
         toast('Category created');
       }
       setName('');
       setImageUrl('');
+      setUploadFile(null);
     } catch (err: any) {
       toast(err?.message ?? 'Failed to save', 'error');
     } finally {
@@ -60,6 +143,7 @@ export default function AdminCategories() {
     setEditId(category._id);
     setName(category.name);
     setImageUrl(category.image_url);
+    setUploadFile(null);
   };
 
   return (
@@ -119,8 +203,27 @@ export default function AdminCategories() {
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               className={fieldInputClass}
-              required
             />
+            <div className="mt-2 space-y-2">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml"
+                onChange={(event) => {
+                  const nextFile = event.target.files?.[0] ?? null;
+                  setUploadFile(nextFile);
+                }}
+                className="w-full border border-[#111]/10 bg-white px-3 py-2 text-xs file:mr-3 file:border-0 file:bg-[#111]/5 file:px-3 file:py-1.5 file:text-xs file:uppercase file:tracking-widest"
+              />
+              <button
+                type="button"
+                className="w-full inline-flex items-center justify-center gap-2 border border-[#111]/10 bg-[#F8F6F3] px-3 py-2 text-xs uppercase tracking-widest hover:border-[#D4A05A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={handleUploadCategoryImage}
+                disabled={uploading || !uploadFile}
+              >
+                <ImageUp className="w-3.5 h-3.5" />
+                {uploading ? 'Uploading category image...' : 'Upload category image'}
+              </button>
+            </div>
             {imageUrl && (
               <div className="mt-1.5 w-20 h-20 border border-[#111]/10 bg-gray-50 overflow-hidden">
                 <img
@@ -144,6 +247,7 @@ export default function AdminCategories() {
                   setEditId(null);
                   setName('');
                   setImageUrl('');
+                  setUploadFile(null);
                 }}
               >
                 Cancel
