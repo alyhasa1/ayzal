@@ -1,5 +1,4 @@
-import { mutation, query, internalAction } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin } from "./lib/auth";
 import { slugify } from "./lib/slugify";
@@ -910,7 +909,6 @@ export const create = mutation({
         payment_method_id: paymentId,
       });
     }
-    await ctx.scheduler.runAfter(0, internal.products.pingSitemap, {});
     return productId;
   },
 });
@@ -973,7 +971,6 @@ export const update = mutation({
         });
       }
     }
-    await ctx.scheduler.runAfter(0, internal.products.pingSitemap, {});
   },
 });
 
@@ -1039,19 +1036,5 @@ export const remove = mutation({
       await ctx.db.delete(link._id);
     }
     await ctx.db.delete(args.id);
-    await ctx.scheduler.runAfter(0, internal.products.pingSitemap, {});
-  },
-});
-
-export const pingSitemap = internalAction({
-  args: {},
-  handler: async () => {
-    try {
-      await fetch(
-        "https://www.google.com/ping?sitemap=https://ayzalcollections.com/sitemap.xml"
-      );
-    } catch {
-      // best-effort ping — do not block on failure
-    }
   },
 });

@@ -3,8 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
+import { canonicalUrl } from "@/lib/seo";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const slug = params.slug;
@@ -25,8 +24,8 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [];
 
-  const canonicalUrl =
-    data.page.canonical_url || `${CANONICAL_BASE}/pages/${data.page.slug}`;
+  const resolvedCanonicalUrl =
+    data.page.canonical_url || canonicalUrl(`/pages/${data.page.slug}`);
   const title = data.page.meta_title || `${data.page.title} | Ayzal Collections`;
   const description =
     data.page.meta_description ||
@@ -38,8 +37,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: canonicalUrl },
-    { tagName: "link", rel: "canonical", href: canonicalUrl },
+    { property: "og:url", content: resolvedCanonicalUrl },
+    { tagName: "link", rel: "canonical", href: resolvedCanonicalUrl },
   ];
 
   if (data.page.noindex) {

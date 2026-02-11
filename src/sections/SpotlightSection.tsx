@@ -19,7 +19,7 @@ export default function SpotlightSection({ data }: { data?: any }) {
   const spotlightProduct = homeData?.spotlight ? mapProduct(homeData.spotlight) : null;
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -83,6 +83,9 @@ export default function SpotlightSection({ data }: { data?: any }) {
           src={spotlightProduct.image}
           alt={spotlightProduct.name}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          sizes="100vw"
         />
       </div>
 

@@ -24,7 +24,7 @@ export default function StyleTipSection({ data }: { data?: StyleTipData }) {
   const tipRef = useRef<HTMLParagraphElement>(null);
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -72,6 +72,9 @@ export default function StyleTipSection({ data }: { data?: StyleTipData }) {
           src={content.imageUrl}
           alt={content.headline}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          sizes="100vw"
         />
       </div>
 

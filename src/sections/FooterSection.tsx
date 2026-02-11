@@ -13,42 +13,47 @@ type FooterLinks = {
 };
 
 const labelFallbackHref: Record<string, string> = {
-  'new arrivals': '/search?sort=newest',
-  formals: '/category/formals',
+  'new arrivals': '/category/ready-to-wear',
+  formal: '/category/formal',
+  formals: '/category/formal',
   'ready-to-wear': '/category/ready-to-wear',
   bridal: '/category/bridal',
-  accessories: '/search?q=accessories',
-  shipping: '/pages/shipping',
+  sale: '/category/sale',
+  accessories: '/category/ready-to-wear',
+  shipping: '/pages/returns-policy',
   returns: '/pages/returns-policy',
   'size guide': '/pages/size-guide',
   faq: '/pages/faq',
-  'contact us': '/support',
+  'contact us': '/pages/faq',
   'about us': '/pages/about-us',
-  careers: '/pages/careers',
+  careers: '/pages/about-us',
   press: '/blog',
-  sustainability: '/pages/sustainability',
+  sustainability: '/pages/about-us',
+  journal: '/blog',
+  'returns policy': '/pages/returns-policy',
 };
 
 const defaultLinks: Required<FooterLinks> = {
   shop: [
-    { label: 'New Arrivals', href: '/search?sort=newest' },
-    { label: 'Formals', href: '/category/formals' },
+    { label: 'Formal', href: '/category/formal' },
     { label: 'Ready-to-Wear', href: '/category/ready-to-wear' },
     { label: 'Bridal', href: '/category/bridal' },
-    { label: 'Accessories', href: '/search?q=accessories' },
+    { label: 'Sale', href: '/category/sale' },
+    { label: 'Journal', href: '/blog' },
   ],
   help: [
-    { label: 'Shipping', href: '/pages/shipping' },
     { label: 'Returns', href: '/pages/returns-policy' },
     { label: 'Size Guide', href: '/pages/size-guide' },
     { label: 'FAQ', href: '/pages/faq' },
-    { label: 'Contact Us', href: '/support' },
+    { label: 'About Us', href: '/pages/about-us' },
+    { label: 'Journal', href: '/blog' },
   ],
   company: [
     { label: 'About Us', href: '/pages/about-us' },
-    { label: 'Careers', href: '/pages/careers' },
-    { label: 'Press', href: '/blog' },
-    { label: 'Sustainability', href: '/pages/sustainability' },
+    { label: 'Returns Policy', href: '/pages/returns-policy' },
+    { label: 'Size Guide', href: '/pages/size-guide' },
+    { label: 'FAQ', href: '/pages/faq' },
+    { label: 'Journal', href: '/blog' },
   ],
 };
 
@@ -101,7 +106,7 @@ export default function FooterSection({ data }: { data?: any }) {
   const facebook = settings.social_links?.facebook ?? '#';
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 

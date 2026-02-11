@@ -1,8 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
+import { canonicalUrl } from "@/lib/seo";
 
 const formatDate = (value?: number) => {
   if (!value) return undefined;
@@ -32,25 +31,25 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
 
   const urls: SitemapUrl[] = [
     {
-      loc: `${CANONICAL_BASE}/`,
+      loc: canonicalUrl("/"),
       lastmod: new Date().toISOString(),
       changefreq: "daily",
       priority: "1.0",
     },
     ...(categories ?? []).map((category) => ({
-      loc: `${CANONICAL_BASE}/category/${category.slug}`,
+      loc: canonicalUrl(`/category/${category.slug}`),
       lastmod: formatDate(category.updated_at),
       changefreq: "weekly",
       priority: "0.7",
     })),
     ...(collections ?? []).map((collection) => ({
-      loc: `${CANONICAL_BASE}/collections/${collection.slug}`,
+      loc: canonicalUrl(`/collections/${collection.slug}`),
       lastmod: formatDate(collection.updated_at),
       changefreq: "weekly",
       priority: "0.7",
     })),
     ...(products ?? []).map((product) => ({
-      loc: `${CANONICAL_BASE}/product/${product.slug}`,
+      loc: canonicalUrl(`/product/${product.slug}`),
       lastmod: formatDate(product.updated_at),
       changefreq: "weekly",
       priority: "0.8",
@@ -59,18 +58,18 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
         : undefined,
     })),
     {
-      loc: `${CANONICAL_BASE}/blog`,
+      loc: canonicalUrl("/blog"),
       changefreq: "weekly",
       priority: "0.6",
     },
     ...(blogPosts ?? []).map((post) => ({
-      loc: `${CANONICAL_BASE}/blog/${post.slug}`,
+      loc: canonicalUrl(`/blog/${post.slug}`),
       lastmod: formatDate(post.updated_at),
       changefreq: "weekly",
       priority: "0.6",
     })),
     ...(contentPages ?? []).map((page) => ({
-      loc: `${CANONICAL_BASE}/pages/${page.slug}`,
+      loc: canonicalUrl(`/pages/${page.slug}`),
       lastmod: formatDate(page.updated_at),
       changefreq: "monthly",
       priority: "0.5",

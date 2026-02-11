@@ -29,7 +29,7 @@ export default function AllProductsSection({ data }: { data?: any }) {
     : products.filter(p => p.category === selectedCategory);
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -118,7 +118,8 @@ export default function AllProductsSection({ data }: { data?: any }) {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="product-card group rounded-xl border border-[#111]/10 bg-white/60 shadow-sm transition-shadow hover:shadow-lg p-4"
+              className="product-card group rounded-xl border bg-[#fffaf4] shadow-sm transition-shadow hover:shadow-lg p-4"
+              style={{ borderColor: '#eff2e6' }}
             >
               {/* Image */}
               <div 
@@ -129,6 +130,9 @@ export default function AllProductsSection({ data }: { data?: any }) {
                   src={product.image}
                   alt={product.name}
                   className="product-image w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw"
                 />
                 {/* Quick Add Button */}
                 <button

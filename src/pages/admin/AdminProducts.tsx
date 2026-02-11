@@ -57,6 +57,30 @@ function sanitizeUploadSegment(value: string) {
   return sanitized || 'draft';
 }
 
+function isLikelyImageUrl(value: string) {
+  const candidate = value.trim();
+  return /^https?:\/\//i.test(candidate) || candidate.startsWith('/');
+}
+
+function parseImageUrlLines(value: string) {
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function buildGalleryUrls(primaryUrl: string, additionalUrls: string[]) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const url of [primaryUrl, ...additionalUrls]) {
+    const trimmed = url.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    out.push(trimmed);
+  }
+  return out;
+}
+
 function productStockQuantity(product: any) {
   if (typeof product?.stockQuantity === 'number') {
     return Math.max(0, Math.floor(product.stockQuantity));
@@ -203,7 +227,15 @@ export default function AdminProducts() {
     setPrimaryUploading(true);
     try {
       const url = await uploadProductImage(primaryUploadFile, 'primary_image_url');
-      setForm((prev) => ({ ...prev, primary_image_url: url }));
+      setForm((prev) => {
+        const additional = parseImageUrlLines(prev.image_urls).filter((item) => item !== url);
+        const imageUrls = buildGalleryUrls(url, additional);
+        return {
+          ...prev,
+          primary_image_url: url,
+          image_urls: imageUrls.join('\n'),
+        };
+      });
       setPrimaryUploadFile(null);
       toast('Primary image uploaded');
     } catch (error: any) {
@@ -223,14 +255,9 @@ export default function AdminProducts() {
     try {
       const url = await uploadProductImage(additionalUploadFile, 'image_urls');
       setForm((prev) => {
-        const lines = prev.image_urls
-          .split('\n')
-          .map((item) => item.trim())
-          .filter(Boolean);
-        if (!lines.includes(url)) {
-          lines.push(url);
-        }
-        return { ...prev, image_urls: lines.join('\n') };
+        const lines = parseImageUrlLines(prev.image_urls);
+        const imageUrls = buildGalleryUrls(prev.primary_image_url, [...lines, url]);
+        return { ...prev, image_urls: imageUrls.join('\n') };
       });
       setAdditionalUploadFile(null);
       toast('Additional image uploaded');
@@ -281,6 +308,49 @@ export default function AdminProducts() {
 
     setSaving(true);
     try {
+      let primaryImageUrl = form.primary_image_url.trim();
+
+      if (!primaryImageUrl && primaryUploadFile) {
+        setPrimaryUploading(true);
+        try {
+          primaryImageUrl = await uploadProductImage(primaryUploadFile, 'primary_image_url');
+          setPrimaryUploadFile(null);
+        } finally {
+          setPrimaryUploading(false);
+        }
+      }
+
+      if (!primaryImageUrl) {
+        throw new Error('Primary image is required. Upload an image or paste a URL.');
+      }
+      if (!isLikelyImageUrl(primaryImageUrl)) {
+        throw new Error('Primary image URL is invalid. Use an absolute URL or a path that starts with /.');
+      }
+
+      const rawAdditionalUrls = parseImageUrlLines(form.image_urls);
+
+      if (additionalUploadFile) {
+        setAdditionalUploading(true);
+        try {
+          const uploaded = await uploadProductImage(additionalUploadFile, 'image_urls');
+          rawAdditionalUrls.push(uploaded);
+          setAdditionalUploadFile(null);
+        } finally {
+          setAdditionalUploading(false);
+        }
+      }
+
+      const validAdditionalUrls = rawAdditionalUrls.filter(
+        (url) => isLikelyImageUrl(url) && url !== primaryImageUrl
+      );
+      const imageUrls = buildGalleryUrls(primaryImageUrl, validAdditionalUrls);
+
+      setForm((prev) => ({
+        ...prev,
+        primary_image_url: primaryImageUrl,
+        image_urls: imageUrls.join('\n'),
+      }));
+
       const payload = {
         name: form.name,
         price: Number(form.price),
@@ -296,8 +366,8 @@ export default function AdminProducts() {
           dupatta: form.dimensions_dupatta,
           shalwar: form.dimensions_shalwar,
         } : undefined,
-        primary_image_url: form.primary_image_url,
-        image_urls: form.image_urls ? form.image_urls.split('\n').map((item) => item.trim()).filter(Boolean) : undefined,
+        primary_image_url: primaryImageUrl,
+        image_urls: imageUrls,
         category_id: form.category_id as any,
         stock_quantity: stockQuantity,
         in_stock: stockQuantity > 0,
@@ -495,7 +565,6 @@ export default function AdminProducts() {
                 value={form.primary_image_url}
                 onChange={(e) => setForm({ ...form, primary_image_url: e.target.value })}
                 className={fieldInputClass}
-                required
               />
               <div className="mt-2 space-y-2">
                 <input

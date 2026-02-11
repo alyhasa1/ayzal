@@ -36,7 +36,7 @@ export default function CategorySection({ data }: { data?: any }) {
   }, [homeData?.categories]);
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -92,6 +92,9 @@ export default function CategorySection({ data }: { data?: any }) {
               src={category.image}
               alt={category.name}
               className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 1023px) 100vw, 34vw"
             />
 
             {/* Content */}

@@ -4,10 +4,9 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
+import { canonicalUrl, toAbsoluteUrl } from "@/lib/seo";
 import DiscoveryRail from "@/components/shop/DiscoveryRail";
 import ProductGridCard from "@/components/shop/ProductGridCard";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const slug = params.slug;
@@ -48,14 +47,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [];
   const title = `${data.category.name} | Ayzal Collections`;
   const description = `Explore ${data.category.name} pakistani dresses, lawn and unstitched lawn styles from Ayzal Collections.`;
-  const url = `${CANONICAL_BASE}/category/${data.category.slug}`;
-  const fallbackImage = `${CANONICAL_BASE}/og.png`;
+  const url = canonicalUrl(`/category/${data.category.slug}`);
+  const fallbackImage = toAbsoluteUrl("/og.png");
   const candidateImage = data.products?.[0]?.image;
-  const ogImage = candidateImage
-    ? candidateImage.startsWith("http")
-      ? candidateImage
-      : `${CANONICAL_BASE}${candidateImage}`
-    : fallbackImage;
+  const ogImage = candidateImage ? toAbsoluteUrl(candidateImage) : fallbackImage;
 
   return [
     { title },
@@ -82,13 +77,13 @@ export default function CategoryRoute() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: `${CANONICAL_BASE}/`,
+        item: canonicalUrl("/"),
       },
       {
         "@type": "ListItem",
         position: 2,
         name: category.name,
-        item: `${CANONICAL_BASE}/category/${category.slug}`,
+        item: canonicalUrl(`/category/${category.slug}`),
       },
     ],
   };
@@ -99,7 +94,7 @@ export default function CategoryRoute() {
     itemListElement: products.map((product, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      url: `${CANONICAL_BASE}/product/${product.slug ?? product.id}`,
+      url: canonicalUrl(`/product/${product.slug ?? product.id}`),
       name: product.name,
     })),
   };

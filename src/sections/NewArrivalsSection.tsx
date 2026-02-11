@@ -24,7 +24,7 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
   const newArrivals = sourceProducts.slice(0, 6).map(mapProduct);
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -101,7 +101,8 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
           {newArrivals.map((product) => (
             <div
               key={product.id}
-              className="product-card group rounded-xl border border-[#111]/10 bg-white/60 shadow-sm transition-shadow hover:shadow-lg p-4"
+              className="product-card group rounded-xl border bg-[#fffaf4] shadow-sm transition-shadow hover:shadow-lg p-4"
+              style={{ borderColor: '#eff2e6' }}
             >
               {/* Image */}
               <div 
@@ -112,6 +113,9 @@ export default function NewArrivalsSection({ data }: { data?: any }) {
                   src={product.image}
                   alt={product.name}
                   className="product-image w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
                 />
                 {/* Quick Add Button */}
                 <button

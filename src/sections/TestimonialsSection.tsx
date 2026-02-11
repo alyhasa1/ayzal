@@ -22,7 +22,7 @@ export default function TestimonialsSection({ data }: { data?: any }) {
   );
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 

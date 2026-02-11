@@ -3,8 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
+import { canonicalUrl, toAbsoluteUrl } from "@/lib/seo";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const slug = params.slug;
@@ -25,8 +24,8 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [];
 
-  const canonicalUrl =
-    data.post.canonical_url || `${CANONICAL_BASE}/blog/${data.post.slug}`;
+  const resolvedCanonicalUrl =
+    data.post.canonical_url || canonicalUrl(`/blog/${data.post.slug}`);
   const title = data.post.meta_title || `${data.post.title} | Ayzal Journal`;
   const description =
     data.post.meta_description ||
@@ -40,8 +39,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: "article" },
-    { property: "og:url", content: canonicalUrl },
-    { tagName: "link", rel: "canonical", href: canonicalUrl },
+    { property: "og:url", content: resolvedCanonicalUrl },
+    { tagName: "link", rel: "canonical", href: resolvedCanonicalUrl },
   ];
 
   if (data.post.cover_image) {
@@ -74,8 +73,8 @@ export default function BlogPostRoute() {
   const post = data.post;
   const publishedDate = new Date(post.published_at).toISOString();
   const modifiedDate = new Date(post.updated_at).toISOString();
-  const canonicalUrl =
-    post.canonical_url || `${CANONICAL_BASE}/blog/${post.slug}`;
+  const resolvedCanonicalUrl =
+    post.canonical_url || canonicalUrl(`/blog/${post.slug}`);
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -89,14 +88,14 @@ export default function BlogPostRoute() {
     },
     image: post.cover_image ? [post.cover_image] : undefined,
     description: post.excerpt || post.meta_description || undefined,
-    mainEntityOfPage: canonicalUrl,
+    mainEntityOfPage: resolvedCanonicalUrl,
     keywords: post.tags.join(", "),
     publisher: {
       "@type": "Organization",
       name: "Ayzal Collections",
       logo: {
         "@type": "ImageObject",
-        url: `${CANONICAL_BASE}/og.png`,
+        url: toAbsoluteUrl("/og.png"),
       },
     },
   };

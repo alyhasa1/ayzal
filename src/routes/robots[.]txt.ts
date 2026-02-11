@@ -1,4 +1,4 @@
-const CANONICAL_BASE = "https://ayzalcollections.com";
+import { CANONICAL_ORIGIN } from "@/lib/seo";
 
 export const loader = async () => {
   const body = [
@@ -6,7 +6,7 @@ export const loader = async () => {
     "Disallow: /admin",
     "Disallow: /account",
     "Disallow: /checkout",
-    `Sitemap: ${CANONICAL_BASE}/sitemap.xml`,
+    `Sitemap: ${CANONICAL_ORIGIN}/sitemap.xml`,
     "",
   ].join("\n");
 

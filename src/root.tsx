@@ -6,6 +6,7 @@ import type {
 } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import {
+  isRouteErrorResponse,
   Links,
   LiveReload,
   Meta,
@@ -14,6 +15,7 @@ import {
   ScrollRestoration,
   useLoaderData,
   useLocation,
+  useRouteError,
 } from "@remix-run/react";
 import { useState, useEffect } from "react";
 import { api } from "../convex/_generated/api";
@@ -24,12 +26,16 @@ import CartDrawer from "@/components/CartDrawer";
 import WhatsAppBubble from "@/components/WhatsAppBubble";
 import { createConvexClient, getConvexUrl } from "@/lib/convex.server";
 import { parseRedirectRules, resolveRedirect, shouldSkipRedirect } from "@/lib/redirects";
+import { CANONICAL_ORIGIN, DEFAULT_HOME_SEO, toAbsoluteUrl } from "@/lib/seo";
 import indexStyles from "./index.css";
 import appStyles from "./App.css";
 
-const CANONICAL_BASE = "https://ayzalcollections.com";
-
 function buildCsp() {
+  const isDev = typeof process !== "undefined" && process.env.NODE_ENV !== "production";
+  const connectSrc = isDev
+    ? "connect-src 'self' https: wss: ws://localhost:* ws://127.0.0.1:* ws://[::1]:*"
+    : "connect-src 'self' https: wss:";
+
   return [
     "default-src 'self'",
     "base-uri 'self'",
@@ -39,7 +45,7 @@ function buildCsp() {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https:",
-    "connect-src 'self' https: wss:",
+    connectSrc,
     "frame-src 'self' https:",
     "form-action 'self'",
     "upgrade-insecure-requests",
@@ -47,6 +53,12 @@ function buildCsp() {
 }
 
 export const links: LinksFunction = () => [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap",
+  },
   { rel: "stylesheet", href: indexStyles },
   { rel: "stylesheet", href: appStyles },
   { rel: "icon", href: "/favicon.ico" },
@@ -56,24 +68,21 @@ export const links: LinksFunction = () => [
   { rel: "manifest", href: "/site.webmanifest" },
 ];
 
-const defaultSeo = {
-  title: "Ayzal Collections | Pakistani Dresses",
-  description:
-    "Discover Ayzal Collections for pakistani dresses, buy pakistani dresses in lahore, lawn, unstitched lawn, and designer lawn pakistan. Elegant unstitched suits crafted for timeless style.",
-  keywords:
-    "pakistani dresses, buy pakistani dresses in lahore, lawn, unstitched lawn, designer lawn pakistan",
-  og_image: "/og.png",
-};
-
 export const loader = async ({ context, request }: LoaderFunctionArgs) => {
   const convexUrl = getConvexUrl(context);
   if (!convexUrl) {
     throw new Response("CONVEX_URL is not set", { status: 500 });
   }
+
+  const incomingUrl = new URL(request.url);
+  if (incomingUrl.hostname === "ayzalcollections.com") {
+    incomingUrl.hostname = "www.ayzalcollections.com";
+    return redirect(incomingUrl.toString(), 301);
+  }
+
   const convex = createConvexClient(context);
   const settings = await convex.query(api.siteSettings.get);
-  const url = new URL(request.url);
-  const path = url.pathname;
+  const path = incomingUrl.pathname;
   if (!shouldSkipRedirect(path)) {
     const redirectRules = parseRedirectRules(settings?.data?.redirect_rules);
     const match = resolveRedirect(path, redirectRules);
@@ -81,8 +90,13 @@ export const loader = async ({ context, request }: LoaderFunctionArgs) => {
       return redirect(match.to, match.status as 301 | 302 | 307 | 308);
     }
   }
-  const categories = await convex.query(api.categories.list);
-  const freeShippingPolicy = await convex.query(api.shipping.getFreeShippingPolicy, {});
+  const isAdminRoute = path.startsWith("/admin");
+  const [categories, freeShippingPolicy] = isAdminRoute
+    ? [[], null]
+    : await Promise.all([
+        convex.query(api.categories.list),
+        convex.query(api.shipping.getFreeShippingPolicy, {}),
+      ]);
 
   return json({
     settings: settings?.data ?? {},
@@ -98,10 +112,8 @@ export const loader = async ({ context, request }: LoaderFunctionArgs) => {
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  const seo = { ...defaultSeo, ...(data?.settings?.seo ?? {}) };
-  const ogImage = seo.og_image?.startsWith("http")
-    ? seo.og_image
-    : `${CANONICAL_BASE}${seo.og_image}`;
+  const seo = { ...DEFAULT_HOME_SEO, ...(data?.settings?.seo ?? {}) };
+  const ogImage = toAbsoluteUrl(typeof seo.og_image === "string" ? seo.og_image : "/og.png");
 
   return [
     { title: seo.title },
@@ -171,8 +183,8 @@ export default function App() {
               "@context": "https://schema.org",
               "@type": "Organization",
               name: brandName,
-              url: CANONICAL_BASE,
-              logo: `${CANONICAL_BASE}/og.png`,
+              url: CANONICAL_ORIGIN,
+              logo: toAbsoluteUrl("/og.png"),
               sameAs,
             }),
           }}
@@ -202,6 +214,43 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+      </body>
+    </html>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  const title = isRouteErrorResponse(error)
+    ? `${error.status} ${error.statusText}`
+    : "Something went wrong";
+  const message = isRouteErrorResponse(error)
+    ? error.data?.message ?? "We could not load this page."
+    : error instanceof Error
+      ? error.message
+      : "We could not load this page.";
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body className="bg-[#F6F2EE] text-[#111]">
+        <main className="min-h-screen px-6 py-24 flex items-center justify-center">
+          <div className="max-w-xl text-center space-y-4">
+            <p className="label-text text-[#6E6E6E]">Ayzal Collections</p>
+            <h1 className="font-display text-2xl tracking-wide">{title}</h1>
+            <p className="text-sm text-[#6E6E6E]">{message}</p>
+            <a href="/" className="btn-primary inline-flex">
+              Go to homepage
+            </a>
+          </div>
+        </main>
+        <Scripts />
       </body>
     </html>
   );

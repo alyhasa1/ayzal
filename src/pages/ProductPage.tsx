@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from '@remix-run/react';
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -44,6 +44,11 @@ function isRecommendationProduct(value: unknown): value is RecommendationProduct
     typeof row.category === "string" &&
     typeof row.price === "number"
   );
+}
+
+function isRenderableImageSrc(value: string) {
+  const candidate = value.trim();
+  return /^https?:\/\//i.test(candidate) || candidate.startsWith('/') || candidate.startsWith('data:image/');
 }
 
 export default function ProductPage({
@@ -102,7 +107,7 @@ export default function ProductPage({
   const [showStickyAtc, setShowStickyAtc] = useState(false);
 
   useEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -196,7 +201,20 @@ export default function ProductPage({
     };
   }, [product.id]);
 
-  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+  const images = useMemo(() => {
+    const seen = new Set<string>();
+    const merged = [product.image, ...(product.images ?? [])]
+      .map((item) => item?.trim())
+      .filter((item): item is string => !!item && isRenderableImageSrc(item))
+      .filter((item) => {
+        if (seen.has(item)) return false;
+        seen.add(item);
+        return true;
+      });
+
+    if (merged.length > 0) return merged;
+    return [product.image];
+  }, [product.image, product.images]);
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -641,7 +659,7 @@ export default function ProductPage({
       {renderRecommendationSection("Recently Viewed", recentlyViewed)}
 
       {showStickyAtc ? (
-        <div className="fixed inset-x-0 bottom-0 z-[120] bg-white border-t border-[#111]/10 p-3 shadow-xl lg:hidden">
+        <div className="fixed inset-x-0 top-16 z-[120] bg-white/95 border-b border-[#111]/10 p-3 shadow-lg backdrop-blur lg:hidden">
           <div className="max-w-7xl mx-auto flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs uppercase tracking-widest text-[#6E6E6E] truncate">{product.name}</p>

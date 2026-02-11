@@ -5,12 +5,10 @@ import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
 import { dedupeProductsById } from "@/lib/commerce";
+import { canonicalUrl, toAbsoluteUrl } from "@/lib/seo";
 import ClientConvexProvider from "@/components/ClientConvexProvider";
 import BrandLoader from "@/components/BrandLoader";
 import ProductPage from "@/pages/ProductPage";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
-const DEFAULT_OG = "/og.png";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const slug = params.slug;
@@ -128,12 +126,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     product.metaDescription ||
     product.description ||
     "Shop Ayzal Collections for pakistani dresses, lawn and unstitched lawn styles.";
-  const ogImage = product.image
-    ? product.image.startsWith("http")
-      ? product.image
-      : `${CANONICAL_BASE}${product.image}`
-    : `${CANONICAL_BASE}${DEFAULT_OG}`;
-  const url = `${CANONICAL_BASE}/product/${product.slug ?? product.id}`;
+  const ogImage = toAbsoluteUrl(product.image);
+  const url = canonicalUrl(`/product/${product.slug ?? product.id}`);
 
   return [
     { title },
@@ -174,33 +168,41 @@ export default function ProductRoute() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: `${CANONICAL_BASE}/`,
+        item: canonicalUrl("/"),
       },
       {
         "@type": "ListItem",
         position: 2,
         name: product.category,
         item: product.categorySlug
-          ? `${CANONICAL_BASE}/category/${product.categorySlug}`
-          : `${CANONICAL_BASE}/#products`,
+          ? canonicalUrl(`/category/${product.categorySlug}`)
+          : `${canonicalUrl("/")}#products`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: product.name,
-        item: `${CANONICAL_BASE}/product/${product.slug ?? product.id}`,
+        item: canonicalUrl(`/product/${product.slug ?? product.id}`),
       },
     ],
   };
 
-  const productUrl = `${CANONICAL_BASE}/product/${product.slug ?? product.id}`;
+  const productUrl = canonicalUrl(`/product/${product.slug ?? product.id}`);
+  const schemaImages = Array.from(
+    new Set(
+      [product.image, ...(product.images ?? [])]
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter(Boolean)
+        .map((value) => toAbsoluteUrl(value))
+    )
+  );
 
   const productSchema: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     url: productUrl,
-    image: product.images && product.images.length > 0 ? product.images : [product.image],
+    image: schemaImages.length > 0 ? schemaImages : [product.image],
     description: product.description,
     sku: product.sku,
     category: product.category,
@@ -223,6 +225,13 @@ export default function ProductRoute() {
 
   if (product.fabric) {
     productSchema.material = product.fabric;
+  }
+  if (reviewStats.count > 0) {
+    productSchema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: reviewStats.average,
+      reviewCount: reviewStats.count,
+    };
   }
 
   return (

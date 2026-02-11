@@ -4,10 +4,9 @@ import { Form, Link, useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
+import { canonicalUrl, toAbsoluteUrl } from "@/lib/seo";
 import DiscoveryRail from "@/components/shop/DiscoveryRail";
 import ProductGridCard from "@/components/shop/ProductGridCard";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
 
 export const loader = async ({ params, request, context }: LoaderFunctionArgs) => {
   const slug = params.slug;
@@ -54,8 +53,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const description =
     data.collection.description ??
     `Shop ${data.collection.name} edits with curated styles and fast delivery.`;
-  const url = `${CANONICAL_BASE}/collections/${data.collection.slug}`;
-  const ogImage = data.collection.image_url || `${CANONICAL_BASE}/og.png`;
+  const url = canonicalUrl(`/collections/${data.collection.slug}`);
+  const ogImage = toAbsoluteUrl(data.collection.image_url);
   return [
     { title },
     { name: "description", content: description },
@@ -71,9 +70,45 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export default function CollectionRoute() {
   const data = useLoaderData<typeof loader>();
   const collection = data.collection;
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: canonicalUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: collection.name,
+        item: canonicalUrl(`/collections/${collection.slug}`),
+      },
+    ],
+  };
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: data.products.map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: canonicalUrl(`/product/${product.slug ?? product.id}`),
+      name: product.name,
+    })),
+  };
 
   return (
     <div className="shop-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
       <section className="pt-24 pb-8">
         <div className="shop-shell">
           <p className="eyebrow text-[#6E6E6E] mb-2">Collection</p>

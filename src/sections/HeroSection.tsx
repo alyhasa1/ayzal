@@ -31,7 +31,7 @@ export default function HeroSection({ data }: { data?: HeroData }) {
 
   // Auto-play entrance animation on load
   useEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
 
@@ -85,7 +85,7 @@ export default function HeroSection({ data }: { data?: HeroData }) {
 
   // Scroll-driven exit animation
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -146,7 +146,28 @@ export default function HeroSection({ data }: { data?: HeroData }) {
     }
   };
 
-  const letters = content.headline.split('');
+  const headline =
+    typeof content.headline === 'string' && content.headline.trim()
+      ? content.headline
+      : defaultHeroData.headline;
+  const subheadline =
+    typeof content.subheadline === 'string' && content.subheadline.trim()
+      ? content.subheadline
+      : defaultHeroData.subheadline;
+  const ctaLabel =
+    typeof content.ctaLabel === 'string' && content.ctaLabel.trim()
+      ? content.ctaLabel
+      : defaultHeroData.ctaLabel;
+  const scrollHintLabel =
+    typeof content.scrollHintLabel === 'string' && content.scrollHintLabel.trim()
+      ? content.scrollHintLabel
+      : defaultHeroData.scrollHintLabel;
+  const imageUrl =
+    typeof content.imageUrl === 'string' && content.imageUrl.trim()
+      ? content.imageUrl
+      : defaultHeroData.imageUrl;
+
+  const letters = headline.split('');
 
   return (
     <section ref={sectionRef} className="section-pinned bg-[#0B0F17]">
@@ -157,11 +178,12 @@ export default function HeroSection({ data }: { data?: HeroData }) {
         style={{ opacity: imageLoaded ? 1 : 0 }}
       >
         <img
-          src={content.imageUrl}
-          alt={`${content.headline} Hero`}
+          src={imageUrl}
+          alt={`${headline} Hero`}
           className="w-full h-full object-cover"
           loading="eager"
-          fetchpriority="high"
+          fetchPriority="high"
+          sizes="100vw"
           decoding="async"
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageLoaded(true)}
@@ -193,12 +215,12 @@ export default function HeroSection({ data }: { data?: HeroData }) {
           ref={subheadlineRef}
           className="font-body text-sm md:text-base tracking-[0.2em] uppercase text-white/90 mb-10"
         >
-          {content.subheadline}
+          {subheadline}
         </p>
 
         {/* CTA */}
         <button ref={ctaRef} onClick={scrollToProducts} className="btn-primary">
-          {content.ctaLabel}
+          {ctaLabel}
         </button>
       </div>
 
@@ -208,7 +230,7 @@ export default function HeroSection({ data }: { data?: HeroData }) {
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[5] flex flex-col items-center text-white/70"
       >
         <div className="w-px h-10 bg-white/40 mb-2" />
-        <span className="label-text">{content.scrollHintLabel}</span>
+        <span className="label-text">{scrollHintLabel}</span>
       </div>
     </section>
   );

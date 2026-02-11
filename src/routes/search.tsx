@@ -5,10 +5,9 @@ import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
 import { mapProduct } from "@/lib/mappers";
 import { formatPrice } from "@/lib/format";
+import { canonicalUrl } from "@/lib/seo";
 import DiscoveryRail from "@/components/shop/DiscoveryRail";
 import ProductGridCard from "@/components/shop/ProductGridCard";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
 
 function parsePrice(value: string | null) {
   if (!value) return undefined;
@@ -90,8 +89,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: "description", content: "Find products fast with category, stock and price filters." },
     { name: "robots", content: "noindex,follow" },
     { property: "og:title", content: title },
-    { property: "og:url", content: `${CANONICAL_BASE}/search` },
-    { tagName: "link", rel: "canonical", href: `${CANONICAL_BASE}/search` },
+    { property: "og:url", content: canonicalUrl("/search") },
+    { tagName: "link", rel: "canonical", href: canonicalUrl("/search") },
   ];
 };
 

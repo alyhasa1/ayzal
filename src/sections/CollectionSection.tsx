@@ -23,7 +23,7 @@ export default function CollectionSection({ data }: { data?: CollectionData }) {
   const microCopyRef = useRef<HTMLParagraphElement>(null);
 
   useIsomorphicLayoutEffect(() => {
-    ensureScrollTrigger();
+    if (!ensureScrollTrigger()) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -71,6 +71,9 @@ export default function CollectionSection({ data }: { data?: CollectionData }) {
           src={content.imageUrl}
           alt={content.headline}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          sizes="100vw"
         />
       </div>
 

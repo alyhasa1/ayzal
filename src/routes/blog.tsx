@@ -3,8 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { api } from "../../convex/_generated/api";
 import { createConvexClient } from "@/lib/convex.server";
-
-const CANONICAL_BASE = "https://ayzalcollections.com";
+import { canonicalUrl } from "@/lib/seo";
 
 export const loader = async ({ context }: LoaderFunctionArgs) => {
   const convex = createConvexClient(context);
@@ -25,8 +24,8 @@ export const meta: MetaFunction<typeof loader> = () => {
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: `${CANONICAL_BASE}/blog` },
-    { tagName: "link", rel: "canonical", href: `${CANONICAL_BASE}/blog` },
+    { property: "og:url", content: canonicalUrl("/blog") },
+    { tagName: "link", rel: "canonical", href: canonicalUrl("/blog") },
   ];
 };
 
